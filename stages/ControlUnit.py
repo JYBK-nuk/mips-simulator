@@ -41,7 +41,13 @@ class ControlUnit:
         pprint(IDOut, expand_all=True)
 
         log("\nEXStage", Back.WHITE + Fore.BLACK)
-        EXOut = self.stages[2].excute(IDOut["PC"], IDOut["instruction"])
+        EXOut = self.stages[2].excute(
+            IDOut["PC"], 
+            IDOut["instruction"], # 暫時沒用到
+            IDOut["control"],
+            IDOut["ReadData1"],
+            IDOut["ReadData2"],
+        )
         pprint(EXOut, expand_all=True)
 
 

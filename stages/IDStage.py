@@ -4,10 +4,6 @@ from stages.ControlUnit import BaseStage, ControlUnit
 
 
 class IDStage(BaseStage):
-    pc: int
-    readData1: int
-    readData2: int
-
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
@@ -21,6 +17,7 @@ class IDStage(BaseStage):
             "MemRead": -1,
             "MemWrite": -1,
             "Branch": -1,
+            "ALUOp": "",
         }
         if instruction.format == Format.RFORMAT:
             self.output = {
@@ -36,6 +33,10 @@ class IDStage(BaseStage):
                 #
             }
             state = [1, 0, 0, 1, 0, 0, 0]
+            if instruction.opcode == "add":
+                state.append("add")  # 00
+            elif instruction.opcode == "sub":
+                state.append("sub")  # 01
 
         elif instruction.format == Format.IFORMAT:
             self.output = {
@@ -51,11 +52,11 @@ class IDStage(BaseStage):
             }
 
             if instruction.opcode == "lw":
-                state = [0, 1, 1, 1, 1, 0, 0]
+                state = [0, 1, 1, 1, 1, 0, 0, "add"]  # 00
             elif instruction.opcode == "sw":
-                state = [-1, 1, -1, 0, 0, 1, 0]
+                state = [-1, 1, -1, 0, 0, 1, 0, "add"]  # 00
             elif instruction.opcode == "beq":
-                state = [-1, 0, -1, 0, 0, 0, 1]
+                state = [-1, 0, -1, 0, 0, 0, 1, "sub"]  # 01 因為要用ALU 相減==0
 
         elif instruction.format == Format.JFORMAT:
             pass

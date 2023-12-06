@@ -5,22 +5,43 @@ from stages.ControlUnit import BaseStage, ControlUnit
 class EXStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
-        # PC is PC+1 from IFStage
-        self.stageData = {"PC": 0, "instruction": "", "nop": False}
 
-    def excute(self, pc:int, instruction: Instruction):
+    def excute(
+        self, pc: int, instruction: Instruction, control: dict, ReadData1: int, ReadData2: int
+    ):
         super().excute()
-        if instruction.format == Format.RFORMAT:
-            if instruction.opcode == "add":
-                pass
-            elif instruction.opcode == "sub":
-                pass
-        elif instruction.format == Format.IFORMAT:
-            if instruction.opcode == "lw":
-                pass
-            elif instruction.opcode == "sw":
-                pass
-        elif instruction.format == Format.JFORMAT:
-            pass
+        alu_op = control["ALUOp"]
+
+        if control["ALUSrc"] == 1:
+            # lw sw , src = immediate
+            ReadData2 = instruction["immediate"]
+
+        if alu_op == "add":
+            self.output = {
+                "PC": pc,
+                "instruction": instruction,
+                "nop": self.nop,
+                "ALUresult": self.ALU("add", ReadData1, ReadData2),
+            }
+        elif alu_op == "sub":
+            self.output = {
+                "PC": pc,
+                "instruction": instruction,
+                "nop": self.nop,
+                "ALUresult": self.ALU("sub", ReadData1, ReadData2),
+            }
+
+        self.output["control"] = control
+
+        # TODO : Branch
+        # if control["Branch"] == 1:
+        # if self.output["ALUresult"] == 0: # 相等
+        # .... pc = pc + 4 + 4*immediate
         return self.output
 
+    def ALU(self, ALUop: str, data1: int, data2: int):
+        if ALUop == "add":  # 00
+            value = data1 + data2
+        elif ALUop == "sub":  # 01
+            value = data1 - data2
+        return value
