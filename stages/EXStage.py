@@ -7,14 +7,14 @@ class EXStage(BaseStage):
         super().__init__(ParentUnit)
 
     def excute(
-        self, pc: int, instruction: Instruction, control: dict, ReadData1: int, ReadData2: int
+        self, pc: int, instruction: Instruction,immediate:int, control: dict, ReadData1: int, ReadData2: int
     ):
         super().excute()
         alu_op = control["ALUOp"]
 
         if control["ALUSrc"] == 1:
             # lw sw , src = immediate
-            ReadData2 = instruction["immediate"]
+            ReadData2 = immediate#改動這邊因lw sw是用immediate
 
         if alu_op == "add":
             self.output = {
