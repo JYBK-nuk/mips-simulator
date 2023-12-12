@@ -4,7 +4,7 @@ from colorama import Fore, Back, Style
 
 from MemAndReg import MemAndReg
 from stages import ControlUnit, EXStage, IDStage, IFStage
-
+from stages.MEMStage import MEMStage 
 
 def log(string, color=Fore.WHITE):
     print(color + string + Style.RESET_ALL)
@@ -27,7 +27,7 @@ def main(args):
     log("Start executing commands...", Fore.GREEN)
 
     controlUnit = ControlUnit(_MemAndReg, Instructions)
-    controlUnit.stages = [IFStage(controlUnit), IDStage(controlUnit),EXStage(controlUnit)]
+    controlUnit.stages = [IFStage(controlUnit), IDStage(controlUnit),EXStage(controlUnit),MEMStage(controlUnit)]
     controlUnit.run()
 
 

@@ -44,12 +44,22 @@ class ControlUnit:
         EXOut = self.stages[2].excute(
             IDOut["PC"], 
             IDOut["instruction"], # 暫時沒用到
+            IDOut["immediate"],
             IDOut["control"],
             IDOut["ReadData1"],
             IDOut["ReadData2"],
         )
         pprint(EXOut, expand_all=True)
-
+        
+        log("\nMEMStage", Back.WHITE + Fore.BLACK)
+        MEMOut = self.stages[3].excute(
+            EXOut["PC"], 
+            EXOut["instruction"], # 暫時沒用到
+            EXOut["control"],
+            IDOut["ReadData2"],#因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
+            EXOut["ALUresult"]
+        )
+        pprint(MEMOut, expand_all=True)
 
 class BaseStage(ABC):
     _ControlUnit: 'ControlUnit'
