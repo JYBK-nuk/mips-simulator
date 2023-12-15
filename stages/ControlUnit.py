@@ -21,6 +21,7 @@ class ControlUnit:
         "MemWrite": False,
         "RegWrite": False,
         "MemToReg": False,
+        
     }
 
     stages: list['BaseStage']
@@ -30,6 +31,7 @@ class ControlUnit:
         self.instructions = instructions
         # IF excute(self)
         # ID excute(self, pc, instruction: Instruction)
+        
 
     def run(self):
         log("\nIFStage", Back.WHITE + Fore.BLACK)
@@ -60,6 +62,21 @@ class ControlUnit:
             EXOut["ALUresult"]
         )
         pprint(MEMOut, expand_all=True)
+        
+        log("\nWBStage", Back.WHITE + Fore.BLACK)
+        WBOut = self.stages[4].excute(
+            MEMOut["PC"], 
+            MEMOut["instruction"], # 暫時沒用到
+            MEMOut["control"],
+            MEMOut["ReadData"],#因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
+            MEMOut["ALUresult"]
+        )
+        
+        
+        
+
+        pprint(WBOut, expand_all=True)
+        
 
 class BaseStage(ABC):
     _ControlUnit: 'ControlUnit'

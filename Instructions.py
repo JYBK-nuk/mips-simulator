@@ -38,6 +38,7 @@ class Instruction:
     opcode: str
     format: Format
     dict_: dict[str, str]
+    
 
     def __init__(self, opcode: str, args: list[str] or dict[str, str]):
         self.opcode = opcode
