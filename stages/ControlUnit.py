@@ -62,7 +62,7 @@ class ControlUnit:
             EXOut["ALUresult"]
         )
         pprint(MEMOut, expand_all=True)
-        
+        #control 要留memToReg跟RegWrite就好
         log("\nWBStage", Back.WHITE + Fore.BLACK)
         WBOut = self.stages[4].excute(
             MEMOut["PC"], 
@@ -71,11 +71,13 @@ class ControlUnit:
             MEMOut["ReadData"],#因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
             MEMOut["ALUresult"]
         )
-        
-        
+        pprint(WBOut, expand_all=True)
         
 
-        pprint(WBOut, expand_all=True)
+
+        #print所有reg跟mem
+        pprint(self._MemAndReg)
+        
         
 
 class BaseStage(ABC):
