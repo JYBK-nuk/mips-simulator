@@ -28,8 +28,7 @@ class ControlUnit:
         self.instructions = instructions
 
     def run(self):
-        self.cycle += 1
-        log(F"\nCycle {self.cycle}", Back.BLUE + Fore.WHITE)
+        log(F"\n↓ Loop {self.cycle//5} ↓", Back.BLUE + Fore.WHITE)
 
         # Stages
         log("\nIFStage", Back.WHITE + Fore.BLACK)
@@ -47,7 +46,7 @@ class ControlUnit:
         )
         pprint(IDOut, expand_all=True)
 
-        log("\nEXStage", Back.WHITE + Fore.BLACK)
+        log("\nEXStage ↓", Back.WHITE + Fore.BLACK)
         EXOut = self.stages[2].RunWithNop(
             self.stages[1].nop,
             IDOut["PC"],
@@ -88,7 +87,7 @@ class ControlUnit:
             self.writeData = WBOut["WriteData"]
         pprint(WBOut, expand_all=True)
         self._MemAndReg.print()
-
+        log(F"\n↑ Cycles : {self.cycle} ↑", Back.CYAN + Fore.WHITE)
         # 終止條件
         if self.stages[0].pc >= len(self.instructions):
             if self.endInstruction:
@@ -105,6 +104,7 @@ class BaseStage(ABC):
         self._ControlUnit = ControlUnit
 
     def RunWithNop(self, nop: bool, *args):
+        self._ControlUnit.cycle += 1
         self.nop = nop
         self.EvenNop(*args)
         if nop:
