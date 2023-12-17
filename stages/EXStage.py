@@ -39,6 +39,7 @@ class EXStage(BaseStage):
                 "instruction": instruction,
                 "nop": self.nop,
                 "ALUResult": self.ALU("add", ReadData1, ReadData2),
+                "AddrResult": -1,#用不到設-1
             }
         elif alu_op == "sub":
             self.output = {
@@ -46,9 +47,10 @@ class EXStage(BaseStage):
                 "instruction": instruction,
                 "nop": self.nop,
                 "ALUResult": self.ALU("sub", ReadData1, ReadData2),
+                "AddrResult": self.ALU("add", pc, int(immediate)),
             }
-
-        # TODO : Branch
+        
+        #Branch的設值在mem 這裡純比較和算pc add
         # if control["Branch"] == 1:
         # if self.output["ALUResult"] == 0: # 相等
         # .... pc = pc + 4 + 4*immediate
@@ -65,7 +67,7 @@ class EXStage(BaseStage):
 
         # 該stage 要傳給下一個stage的 control 值
         self.output["control"] = {}
-        for c in ["MemToReg", "RegWrite", "MemRead", "MemWrite"]:
+        for c in ["MemToReg", "RegWrite","Branch", "MemRead", "MemWrite"]:
             self.output["control"][c] = control[c]
         return self.output
 

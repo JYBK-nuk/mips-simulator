@@ -12,8 +12,8 @@ class MEMStage(BaseStage):
         instruction: Instruction,
         control: dict,
         ReadData2: int,
-        # passthrough
         ALUresult: int,
+        AddrResult: int,
         RegDstValue: str,  # 這個是要存到哪個暫存器 在EXStage已經算好了 傳下去
     ):
         super().excute()
@@ -38,6 +38,25 @@ class MEMStage(BaseStage):
                 "ReadData": ReadData,
                 "RegDstValue": RegDstValue,
             }
+        elif control["Branch"] == 1:
+            if ALUresult==0:
+                self.output = {
+                    "PC": AddrResult,
+                    "instruction": instruction,
+                    "nop": self.nop,
+                    "ALUResult": ALUresult,
+                    "ReadData": None,
+                    "RegDstValue": RegDstValue,
+                }
+            else:
+                self.output = {
+                    "PC": pc,
+                    "instruction": instruction,
+                    "nop": self.nop,
+                    "ALUResult": ALUresult,
+                    "ReadData": None,
+                    "RegDstValue": RegDstValue,
+                }
         else:
             self.output = {
                 "PC": pc,

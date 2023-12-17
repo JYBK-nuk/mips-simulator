@@ -66,8 +66,8 @@ class ControlUnit:
             EXOut["instruction"],  # 暫時沒用到
             EXOut["control"],  # ["MemToReg", "RegWrite", "MemRead", "MemWrite"]
             EXOut["ReadData2"],  # 因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
-            # pure passthrough
             EXOut["ALUResult"],
+            EXOut["AddrResult"],#計算pc加offset的結果
             EXOut["RegDstValue"],
         )
         pprint(MEMOut, expand_all=True)
@@ -86,6 +86,7 @@ class ControlUnit:
             self.RegWrite = WBOut["control"]["RegWrite"]
             self.writeReg = WBOut["WriteRegister"]
             self.writeData = WBOut["WriteData"]
+            self.stages[0].pc = WBOut["PC"]
         pprint(WBOut, expand_all=True)
         self._MemAndReg.print()
         log(F"\n↑ Cycles : {self.cycle} ↑", Back.CYAN + Fore.WHITE)
