@@ -26,9 +26,9 @@ def main(args):
     _MemAndReg.print()
 
     log("Start executing commands...", Fore.GREEN)
-    pipline = "Y" == input("Use pipline? (Y/N) ").upper()
+    pipeline = "Y" == input("Use pipeline? (Y/N) ").upper()
     log("")
-    controlUnit = ControlUnit(_MemAndReg, Instructions, pipline)
+    controlUnit = ControlUnit(_MemAndReg, Instructions, pipeline)
     controlUnit.stages = [
         IFStage(controlUnit),
         IDStage(controlUnit),

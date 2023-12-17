@@ -20,7 +20,7 @@ class ControlUnit:
     writeReg = None
     writeData = None
 
-    piplineRegistor: dict[str, dict] = {
+    pipelineRegister: dict[str, dict] = {
         "IF/ID": defaultdict(lambda: None),
         "ID/EX": defaultdict(lambda: None),
         "EX/MEM": defaultdict(lambda: None),
@@ -29,47 +29,47 @@ class ControlUnit:
 
     stages: list['BaseStage']
 
-    def __init__(self, MemAndReg: 'MemAndReg', instructions: list[Instruction], pipline: bool):
+    def __init__(self, MemAndReg: 'MemAndReg', instructions: list[Instruction], pipeline: bool):
         self._MemAndReg = MemAndReg
         self.instructions = instructions
-        self.pipline = pipline
+        self.pipeline = pipeline
 
-        self.piplineRegistor["IF/ID"]["nop"] = True
-        self.piplineRegistor["ID/EX"]["nop"] = True
-        self.piplineRegistor["EX/MEM"]["nop"] = True
-        self.piplineRegistor["MEM/WB"]["nop"] = True
+        self.pipelineRegister["IF/ID"]["nop"] = True
+        self.pipelineRegister["ID/EX"]["nop"] = True
+        self.pipelineRegister["EX/MEM"]["nop"] = True
+        self.pipelineRegister["MEM/WB"]["nop"] = True
 
-    def SaveAndGetPiplineRegistor(self, stage: str, data: dict):
+    def SaveAndGetpipelineRegister(self, stage: str, data: dict):
         pprint(data, expand_all=True)
-        temp = self.piplineRegistor[stage]
-        self.piplineRegistor[stage] = data
+        temp = self.pipelineRegister[stage]
+        self.pipelineRegister[stage] = data
         return temp
 
     def start(self):
-        if self.pipline:
+        if self.pipeline:
             while True:
-                if self.runPipline() is False:
+                if self.runpipeline() is False:
                     break
         else:
             while True:
                 if self.run() is False:
                     break
 
-    def runPipline(self):
+    def runpipeline(self):
         log(F"\n↓ Cycle {(self.cycle) +1} ↓", Back.BLUE + Fore.WHITE)
 
         # Stages
         log("\nIFStage", Back.WHITE + Fore.BLACK)
-        IFOut = self.SaveAndGetPiplineRegistor("IF/ID", self.stages[0].RunWithNop(False))
+        IFOut = self.SaveAndGetpipelineRegister("IF/ID", self.stages[0].RunWithNop(False))
 
         log("\nIDStage", Back.WHITE + Fore.BLACK)
-        IDOut = self.SaveAndGetPiplineRegistor(
+        IDOut = self.SaveAndGetpipelineRegister(
             "ID/EX",
             self.stages[1].RunWithNop(IFOut["nop"], IFOut["PC"], IFOut["instruction"]),
         )
 
         log("\nEXStage", Back.WHITE + Fore.BLACK)
-        EXOut = self.SaveAndGetPiplineRegistor(
+        EXOut = self.SaveAndGetpipelineRegister(
             "EX/MEM",
             self.stages[2].RunWithNop(
                 IDOut["nop"],
@@ -83,7 +83,7 @@ class ControlUnit:
         )
 
         log("\nMEMStage", Back.WHITE + Fore.BLACK)
-        MEMOut = self.SaveAndGetPiplineRegistor(
+        MEMOut = self.SaveAndGetpipelineRegister(
             "MEM/WB",
             self.stages[3].RunWithNop(
                 EXOut["nop"],
@@ -113,7 +113,7 @@ class ControlUnit:
         log("\n↑ End Cycle", Back.BLUE + Fore.WHITE)
 
         # 終止條件
-        for stage in self.piplineRegistor.values():
+        for stage in self.pipelineRegister.values():
             if stage["nop"] is False:
                 break
         else:
@@ -191,7 +191,7 @@ class BaseStage(ABC):
         self._ControlUnit = ControlUnit
 
     def RunWithNop(self, nop: bool, *args):
-        if not self._ControlUnit.pipline:
+        if not self._ControlUnit.pipeline:
             self._ControlUnit.cycle += 1
         self.nop = nop
         self.EvenNop(*args)
