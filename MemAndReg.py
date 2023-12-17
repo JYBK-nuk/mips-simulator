@@ -17,8 +17,6 @@ class MemAndReg:
         self.memory = np.ones(32, dtype=np.int32)
 
         # test data
-        # self.memory[2] = 5
-        # self.memory[4] = 6
 
 
     def getReg(self, key: str):

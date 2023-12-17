@@ -60,7 +60,9 @@ class ControlUnit:
 
         # Stages
         log("\nIFStage", Back.WHITE + Fore.BLACK)
-        IFOut = self.SaveAndGetpipelineRegister("IF/ID", self.stages[0].RunWithNop(False))
+        IFOut = self.SaveAndGetpipelineRegister(
+            "IF/ID", self.stages[0].RunWithNop(self.stages[0].nop)
+        )
 
         log("\nIDStage", Back.WHITE + Fore.BLACK)
         IDOut = self.SaveAndGetpipelineRegister(
@@ -93,6 +95,7 @@ class ControlUnit:
                 EXOut["ReadData2"],  # 因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
                 # pure passthrough
                 EXOut["ALUResult"],
+                EXOut["AddrResult"],  # 計算pc加offset的結果
                 EXOut["RegDstValue"],
             ),
         )
@@ -118,7 +121,7 @@ class ControlUnit:
                 break
         else:
             return False
-        
+
         self.cycle += 1
 
     def run(self):
@@ -157,7 +160,7 @@ class ControlUnit:
             EXOut["control"],  # ["MemToReg", "RegWrite", "MemRead", "MemWrite"]
             EXOut["ReadData2"],  # 因為電路圖 有抓ReadData2 aka rt拿來用 所以看要在ex補
             EXOut["ALUResult"],
-            EXOut["AddrResult"],#計算pc加offset的結果
+            EXOut["AddrResult"],  # 計算pc加offset的結果
             EXOut["RegDstValue"],
         )
         pprint(MEMOut, expand_all=True)
@@ -176,13 +179,12 @@ class ControlUnit:
             self.RegWrite = WBOut["control"]["RegWrite"]
             self.writeReg = WBOut["WriteRegister"]
             self.writeData = WBOut["WriteData"]
-            self.stages[0].pc = WBOut["PC"]#設定下次要執行的pc 反正沒branch就會跟原本一樣
         pprint(WBOut, expand_all=True)
         self._MemAndReg.print()
 
         log(F"\n↑ Cycles : {self.cycle} ↑", Back.CYAN + Fore.WHITE)
 
-       # 終止條件
+        # 終止條件
         if self.stages[0].pc >= len(self.instructions):
             return False
 
@@ -191,6 +193,7 @@ class BaseStage(ABC):
     _ControlUnit: 'ControlUnit'
     nop: bool = False
     output: dict = {}
+    Instruction: Instruction
 
     def __init__(self, ControlUnit: 'ControlUnit'):
         self._ControlUnit = ControlUnit
@@ -203,6 +206,8 @@ class BaseStage(ABC):
         if nop is True or nop is None:
             dict_ = defaultdict(lambda: None)
             dict_["nop"] = True
+            # EX
+            # {"nop": True, "PC": None, "instruction": None, "immediate": None, "control": None, "ReadData1": None, "ReadData2": None}
             return dict_
         return self.execute(*args)
 
