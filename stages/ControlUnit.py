@@ -21,6 +21,7 @@ class ControlUnit:
     writeReg = None
     writeData = None
 
+    piplineRegistor: dict[str, dict] = {}
     stages: list['BaseStage']
 
     def __init__(self, MemAndReg: 'MemAndReg', instructions: list[Instruction]):
@@ -46,7 +47,7 @@ class ControlUnit:
         )
         pprint(IDOut, expand_all=True)
 
-        log("\nEXStage ↓", Back.WHITE + Fore.BLACK)
+        log("\nEXStage", Back.WHITE + Fore.BLACK)
         EXOut = self.stages[2].RunWithNop(
             self.stages[1].nop,
             IDOut["PC"],
