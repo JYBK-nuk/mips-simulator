@@ -176,6 +176,7 @@ class ControlUnit:
             self.RegWrite = WBOut["control"]["RegWrite"]
             self.writeReg = WBOut["WriteRegister"]
             self.writeData = WBOut["WriteData"]
+            self.stages[0].pc = WBOut["PC"]
         pprint(WBOut, expand_all=True)
         self._MemAndReg.print()
 
