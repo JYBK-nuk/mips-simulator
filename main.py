@@ -25,8 +25,8 @@ def main(args):
     _MemAndReg.print()
 
     log("Start executing commands...", Fore.GREEN)
-
-    controlUnit = ControlUnit(_MemAndReg, Instructions)
+    pipline = "Y" == input("Use pipline? (Y/N) ").upper()
+    controlUnit = ControlUnit(_MemAndReg, Instructions,pipline)
     controlUnit.stages = [
         IFStage(controlUnit),
         IDStage(controlUnit),
@@ -34,9 +34,7 @@ def main(args):
         MEMStage(controlUnit),
         WBStage(controlUnit),
     ]
-    while True:
-        if controlUnit.run() is False:
-            break
+    controlUnit.start()
 
 
 if __name__ == "__main__":
