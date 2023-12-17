@@ -7,14 +7,24 @@ class EXStage(BaseStage):
         super().__init__(ParentUnit)
 
     def excute(
-        self, pc: int, instruction: Instruction,immediate:int, control: dict, ReadData1: int, ReadData2: int
+        self,
+        pc: int,
+        instruction: Instruction,
+        immediate: int,
+        control: dict,
+        ReadData1: int,
+        ReadData2: int,
     ):
         super().excute()
         alu_op = control["ALUOp"]
 
         if control["ALUSrc"] == 1:
-            # lw sw , src = immediate
-            ReadData2 = immediate#改動這邊因lw sw是用immediate
+            # lw sw , ReadData2要變成讀取immediate
+            # 例如 lw 是 BaseAddress + Offset 的部分 (ReadData1 + immediate)
+            # ex : lw $t0, 4($t1) 4就是immediate 
+            # (所以要記得在MEMStage要讀取ReadData2要除以4才會是在記憶體中的位置) 
+            # ps : 我們的記憶體是直接以4byte為單位 np.int32
+            ReadData2 = immediate
 
         if alu_op == "add":
             self.output = {

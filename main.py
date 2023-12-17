@@ -3,8 +3,7 @@ from pprint import pprint
 from colorama import Fore, Back, Style
 
 from MemAndReg import MemAndReg
-from stages import ControlUnit, EXStage, IDStage, IFStage
-from stages.MEMStage import MEMStage 
+from stages import ControlUnit, EXStage, IDStage, IFStage, MEMStage
 
 def log(string, color=Fore.WHITE):
     print(color + string + Style.RESET_ALL)
@@ -39,3 +38,4 @@ if __name__ == "__main__":
     parser.add_argument("result", help="result file", default="result.txt", nargs='?')
     args = parser.parse_args()
     main(args)
+
