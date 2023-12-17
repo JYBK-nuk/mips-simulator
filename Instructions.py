@@ -27,10 +27,11 @@ def parse_sw_lw(args: list[str]):
 
 FormatTable = {
     # 放置順序與指令args順序不同
-    "add": [Format.RFORMAT, [1, 2, 0]],  # 2 = rd, 0 = rs, 1 = rt
-    "sub": [Format.RFORMAT, [1, 2, 0]],  # 2 = rd, 0 = rs, 1 = rt
+    "add": [Format.RFORMAT, [2, 0, 1]],  # 0 = rs, 1 = rt, 2 = rd
+    "sub": [Format.RFORMAT, [2, 0, 1]],  # 0 = rs, 1 = rt, 2 = rd
     "sw": [Format.IFORMAT, parse_sw_lw],
     "lw": [Format.IFORMAT, parse_sw_lw],
+    "beq": [Format.IFORMAT, [0, 1, 2]],  # 0 = rs, 1 = rt, 2 = immediate
 }
 
 
@@ -38,7 +39,6 @@ class Instruction:
     opcode: str
     format: Format
     dict_: dict[str, str]
-    
 
     def __init__(self, opcode: str, args: list[str] or dict[str, str]):
         self.opcode = opcode
@@ -54,7 +54,7 @@ class Instruction:
         used_fields = FormatTable[opcode][1]
         # 兩種情況: 1. 順序問題 2. lw sw 需要解析()
         if isinstance(used_fields, list):
-            self.dict_ = {fields[i]: args[used_fields[i]] for i in range(len(used_fields))}
+            self.dict_ = {fields[used_fields[i]]: args[i] for i in range(len(used_fields))}
         elif callable(used_fields):
             self.dict_ = used_fields(args)
 
