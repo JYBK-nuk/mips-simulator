@@ -38,8 +38,8 @@ class MEMStage(BaseStage):
                 "ReadData": ReadData,
                 "RegDstValue": RegDstValue,
             }
-        elif control["Branch"] == 1:
-            if ALUresult==0:
+        elif control["Branch"] == 1: #如果branch  
+            if ALUresult==0:#看相減結果是否相等 from ex
                 self.output = {
                     "PC": AddrResult,
                     "instruction": instruction,

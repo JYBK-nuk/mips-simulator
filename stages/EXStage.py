@@ -47,7 +47,7 @@ class EXStage(BaseStage):
                 "instruction": instruction,
                 "nop": self.nop,
                 "ALUResult": self.ALU("sub", ReadData1, ReadData2),
-                "AddrResult": self.ALU("add", pc, int(immediate)),
+                "AddrResult": self.ALU("add", pc, int(immediate)), #邏輯算要byte address 的運算 (pc*4 + immediate*4)/4
             }
         
         #Branch的設值在mem 這裡純比較和算pc add

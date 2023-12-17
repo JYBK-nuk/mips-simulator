@@ -176,7 +176,7 @@ class ControlUnit:
             self.RegWrite = WBOut["control"]["RegWrite"]
             self.writeReg = WBOut["WriteRegister"]
             self.writeData = WBOut["WriteData"]
-            self.stages[0].pc = WBOut["PC"]
+            self.stages[0].pc = WBOut["PC"]#設定下次要執行的pc 反正沒branch就會跟原本一樣
         pprint(WBOut, expand_all=True)
         self._MemAndReg.print()
 
