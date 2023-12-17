@@ -27,11 +27,6 @@ class EXStage(BaseStage):
             # ps : 我們的記憶體是直接以4byte為單位 np.int32
             ReadData2 = immediate
 
-            # 為了我們的記憶體是直接以4byte為單位 np.int32 才這樣寫
-            if control["MemWrite"] == 1 or control["MemRead"] == 1:
-                if immediate % 4 != 0:
-                    raise Exception("Immediate must be multiple of 4")
-                ReadData2 = ReadData2 // 4
 
         if alu_op == "add":
             self.output = {
@@ -51,12 +46,6 @@ class EXStage(BaseStage):
             }
         
         #Branch的設值在mem 這裡純比較和算pc add
-        # if control["Branch"] == 1:
-        # if self.output["ALUResult"] == 0: # 相等
-        # .... pc = pc + 4 + 4*immediate
-        # 我們只要pc = pc(這裡的在IF+過1了) + immediate
-
-        #
 
         if control["RegDst"] == 1:
             self.output["RegDstValue"] = instruction.dict_['rd']
