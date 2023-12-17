@@ -52,7 +52,8 @@ class EXStage(BaseStage):
         # if control["Branch"] == 1:
         # if self.output["ALUResult"] == 0: # 相等
         # .... pc = pc + 4 + 4*immediate
-
+        # 我們只要pc = pc(這裡的在IF+過1了) + immediate
+            
         #
 
         if control["RegDst"] == 1:
