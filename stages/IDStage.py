@@ -7,8 +7,16 @@ class IDStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(self, pc, instruction: Instruction):
+    def excute(
+        self,
+        pc,
+        instruction: Instruction,
+        RegWrite: Union[int, None] = None,
+        WriteData: Union[int, None] = None,
+        WriteRegister: Union[str, None] = None,
+    ):
         super().excute()
+        self.WriteBack(RegWrite, WriteData, WriteRegister)
         control: Dict[str, int] = {
             "RegDst": -1,
             "ALUSrc": -1,
@@ -65,3 +73,9 @@ class IDStage(BaseStage):
             control[key] = state.pop(0)
         self.output["control"] = control
         return self.output
+
+    def WriteBack(self, RegWrite: int, WriteData: int, WriteRegister: str):
+        if RegWrite != 1:
+            return
+        if WriteData is not None and WriteRegister is not None:
+            self._ControlUnit._MemAndReg.setReg(WriteRegister, WriteData)

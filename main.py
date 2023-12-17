@@ -5,6 +5,7 @@ from colorama import Fore, Back, Style
 from MemAndReg import MemAndReg
 from stages import ControlUnit, EXStage, IDStage, IFStage, MEMStage, WBStage
 
+
 def log(string, color=Fore.WHITE):
     print(color + string + Style.RESET_ALL)
 
@@ -18,7 +19,7 @@ def main(args):
     ]
     log("Load commands from %s" % args.command, Fore.GREEN)
     print("\n".join([str(x) for x in Instructions]))
-    
+
     log("Initialize registers and data memory", Fore.GREEN)
     _MemAndReg = MemAndReg()
     pprint(_MemAndReg)
@@ -26,10 +27,16 @@ def main(args):
     log("Start executing commands...", Fore.GREEN)
 
     controlUnit = ControlUnit(_MemAndReg, Instructions)
-    controlUnit.stages = [IFStage(controlUnit), IDStage(controlUnit),EXStage(controlUnit),MEMStage(controlUnit),WBStage(controlUnit)]
-    controlUnit.run()
-    
-    
+    controlUnit.stages = [
+        IFStage(controlUnit),
+        IDStage(controlUnit),
+        EXStage(controlUnit),
+        MEMStage(controlUnit),
+        WBStage(controlUnit),
+    ]
+    while True:
+        if controlUnit.run() is False:
+            break
 
 
 if __name__ == "__main__":
@@ -40,4 +47,3 @@ if __name__ == "__main__":
     parser.add_argument("result", help="result file", default="result.txt", nargs='?')
     args = parser.parse_args()
     main(args)
-
