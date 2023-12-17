@@ -53,7 +53,9 @@ class Instruction:
         used_fields = FormatTable[opcode][1]
         # 兩種情況: 1. 順序問題 2. lw sw 需要解析()
         if isinstance(used_fields, list):
-            self.dict_ = {fields[i]: args[used_fields[i]] for i in range(len(used_fields))}
+            self.dict_ = {
+                fields[i]: args[used_fields[i]] for i in range(len(used_fields))
+            }
         elif callable(used_fields):
             self.dict_ = used_fields(args)
 
