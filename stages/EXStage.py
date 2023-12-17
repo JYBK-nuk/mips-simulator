@@ -6,7 +6,7 @@ class EXStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(
+    def execute(
         self,
         pc: int,
         instruction: Instruction,
@@ -15,7 +15,7 @@ class EXStage(BaseStage):
         ReadData1: int,
         ReadData2: int,
     ):
-        super().excute()
+        super().execute()
         alu_op = control["ALUOp"]
         inputReadData2 = ReadData2  # if MemWrite == 1 MEM STAGE 會用到
 

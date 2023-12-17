@@ -204,12 +204,12 @@ class BaseStage(ABC):
             dict_ = defaultdict(lambda: None)
             dict_["nop"] = True
             return dict_
-        return self.excute(*args)
+        return self.execute(*args)
 
     def EvenNop(self, *args):  # 就算是nop也要執行的
         pass
 
-    def excute(self):  # 這個NOP = True的時候不會執行
+    def execute(self):  # 這個NOP = True的時候不會執行
         pass
 
     def showData(self):

@@ -6,7 +6,7 @@ class WBStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(
+    def execute(
         self,
         pc: int,
         instruction: Instruction,
@@ -16,7 +16,7 @@ class WBStage(BaseStage):
         # passthrough
         RegDstValue: str,  # from EX STAGE RegDst 選的
     ):
-        super().excute()
+        super().execute()
         self.output = {
             "PC": pc,
             "instruction": instruction,

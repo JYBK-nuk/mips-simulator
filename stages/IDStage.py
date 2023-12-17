@@ -7,12 +7,12 @@ class IDStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(
+    def execute(
         self,
         pc,
         instruction: Instruction,
     ):
-        super().excute()
+        super().execute()
 
         control: Dict[str, int] = {
             "RegDst": -1,

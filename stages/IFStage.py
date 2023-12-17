@@ -8,8 +8,8 @@ class IFStage(BaseStage):
         super().__init__(ParentUnit)
         self.pc = pc
 
-    def excute(self):
-        super().excute()
+    def execute(self):
+        super().execute()
         self.output = {
             "PC": self.pc + 1,
             "instruction": self._ControlUnit.instructions[self.pc],
