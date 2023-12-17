@@ -15,6 +15,7 @@ class WBStage(BaseStage):
         return {
             "PC": PC,
             "instruction": instruction,
+            "nop": self.nop,
             "control": control,
             "ALUresult": ALUresult,
             "ReadData": ReadData,

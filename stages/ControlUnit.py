@@ -12,7 +12,7 @@ def log(string, color=Fore.WHITE):
 class ControlUnit:
     _MemAndReg: "MemAndReg"
     instructions: list[Instruction]
-    pipline: bool = True
+    pipeline: bool = True
     state = {
         "RegDst": False,
         "ALUSrc": False,
@@ -29,50 +29,40 @@ class ControlUnit:
         self.prev_instruction: Instruction = None
         self._MemAndReg = MemAndReg
         self.instructions = instructions
-        # IF excute(self)
-        # ID excute(self, pc, instruction: Instruction)
+
+        # Initialize pipeline registers
+        self.IFID = {}
+        self.IDEX = {}
+        self.EXMEM = {}
+        self.MEMWB = {}
 
     def run(self):
         for instruction in self.instructions:
             log(f"\nExecuting Instruction: {instruction}", Fore.YELLOW)
+
             log("IFStage", Back.WHITE + Fore.BLACK)
-            IFOut = self.stages[0].excute()
-            pprint(IFOut, expand_all=True)
+            self.stages[0].execute()
+            self.IFID = self.stages[0].output
+            pprint(self.IFID, expand_all=True)
 
             log("\nIDStage", Back.WHITE + Fore.BLACK)
-            IDOut = self.stages[1].excute(IFOut["PC"], instruction)
-            pprint(IDOut, expand_all=True)
+            self.stages[1].execute()
+            self.IDEX = self.stages[1].output
+            pprint(self.IDEX, expand_all=True)
 
             log("\nEXStage", Back.WHITE + Fore.BLACK)
-            EXOut = self.stages[2].excute(
-                IDOut["PC"],
-                IDOut["instruction"],
-                IDOut["immediate"],
-                IDOut["control"],
-                IDOut["ReadData1"],
-                IDOut["ReadData2"],
-            )
-            pprint(EXOut, expand_all=True)
+            self.stages[2].execute()
+            self.EXMEM = self.stages[2].output
+            pprint(self.EXMEM, expand_all=True)
 
             log("\nMEMStage", Back.WHITE + Fore.BLACK)
-            MEMOut = self.stages[3].excute(
-                EXOut["PC"],
-                EXOut["instruction"],
-                EXOut["control"],
-                IDOut["ReadData2"],
-                EXOut["ALUresult"],
-            )
-            pprint(MEMOut, expand_all=True)
+            self.stages[3].execute()
+            self.MEMWB = self.stages[3].output
+            pprint(self.MEMWB, expand_all=True)
 
             log("\nWBStage", Back.WHITE + Fore.BLACK)
-            WBOut = self.stages[4].excute(
-                MEMOut["PC"],
-                MEMOut["instruction"],
-                MEMOut["control"],
-                MEMOut["ALUresult"],
-                MEMOut["ReadData"],
-            )
-            pprint(WBOut, expand_all=True)
+            self.stages[4].execute()
+            pprint(self.stages[4].output, expand_all=True)
 
 
 class BaseStage(ABC):
@@ -83,7 +73,7 @@ class BaseStage(ABC):
     def __init__(self, ControlUnit: "ControlUnit"):
         self._ControlUnit = ControlUnit
 
-    def excute(self):
+    def execute(self):
         pass
 
     def showData(self):

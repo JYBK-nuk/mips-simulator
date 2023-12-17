@@ -22,7 +22,7 @@ def parse_sw_lw(args: list[str]):
     constant = args[1].split("(")
     rs = constant[1][:-1]
     immediate = int(constant[0])
-    return {"rt": rt, "immediate": immediate, "rs": rs}
+    return {"rt": rt, "immediate": immediate, "rs": rs, "pipeline": False}
 
 
 FormatTable = {
@@ -38,6 +38,7 @@ class Instruction:
     opcode: str
     format: Format
     dict_: dict[str, str]
+    pipeline: bool = False
 
     def __init__(self, opcode: str, args: list[str] or dict[str, str]):
         self.opcode = opcode
@@ -63,5 +64,5 @@ class Instruction:
         yield from self.dict_.items()
 
     def __repr__(self) -> str:
-        # print can print all args
-        return self.opcode + ":" + str(self.dict_)
+        status = " (Pipeline)" if self.pipeline else ""
+        return self.opcode + ":" + str(self.dict_) + status
