@@ -1,4 +1,5 @@
 from stages.ControlUnit import BaseStage, ControlUnit
+from collections import defaultdict
 
 
 class IFStage(BaseStage):
@@ -10,6 +11,10 @@ class IFStage(BaseStage):
 
     def execute(self):
         super().execute()
+        if self.pc >= len(self._ControlUnit.instructions):
+            self.output = defaultdict(lambda: None)
+            self.output["nop"] = True
+            return self.output
         self.output = {
             "PC": self.pc + 1,
             "instruction": self._ControlUnit.instructions[self.pc],

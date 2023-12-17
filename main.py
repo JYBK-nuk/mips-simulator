@@ -13,6 +13,7 @@ def log(string, color=Fore.WHITE):
 def main(args):
     file = open(args.command, "r")
     commands = file.read().splitlines()
+    file.close()
     Instructions = [perLine.split(" ", 1) for perLine in commands]
     Instructions = [
         Instruction(opcode, args.replace(" ", "").split(",")) for opcode, args in Instructions
@@ -26,7 +27,8 @@ def main(args):
 
     log("Start executing commands...", Fore.GREEN)
     pipline = "Y" == input("Use pipline? (Y/N) ").upper()
-    controlUnit = ControlUnit(_MemAndReg, Instructions,pipline)
+    log("")
+    controlUnit = ControlUnit(_MemAndReg, Instructions, pipline)
     controlUnit.stages = [
         IFStage(controlUnit),
         IDStage(controlUnit),
