@@ -3,6 +3,7 @@ from rich.pretty import pprint
 from Instructions import Instruction
 from MemAndReg import MemAndReg
 from colorama import Fore, Back, Style
+from collections import defaultdict
 
 
 def log(string, color=Fore.WHITE):
@@ -13,16 +14,12 @@ class ControlUnit:
     _MemAndReg: 'MemAndReg'
     instructions: list[Instruction]
     pipline: bool = True
+
     cycle: int = 0
-    state = {
-        "RegDst": False,
-        "ALUSrc": False,
-        "Branch": False,
-        "MemRead": False,
-        "MemWrite": False,
-        "RegWrite": False,
-        "MemToReg": False,
-    }
+    endInstruction = False
+    RegWrite = None
+    writeReg = None
+    writeData = None
 
     stages: list['BaseStage']
 
@@ -31,27 +28,28 @@ class ControlUnit:
         self.instructions = instructions
 
     def run(self):
-        RegWrite = None
-        writeReg = None
-        writeData = None
-        if self.stages[0].pc >= len(self.instructions):
-            return False
         self.cycle += 1
         log(F"\nCycle {self.cycle}", Back.BLUE + Fore.WHITE)
 
         # Stages
         log("\nIFStage", Back.WHITE + Fore.BLACK)
-        IFOut = self.stages[0].excute()
+        IFOut = self.stages[0].RunWithNop(self.stages[0].pc >= len(self.instructions))
         pprint(IFOut, expand_all=True)
 
         log("\nIDStage", Back.WHITE + Fore.BLACK)
-        IDOut = self.stages[1].excute(
-            IFOut["PC"], IFOut["instruction"], RegWrite, writeData, writeReg
+        IDOut = self.stages[1].RunWithNop(
+            self.stages[0].nop,
+            IFOut["PC"],
+            IFOut["instruction"],
+            self.RegWrite,
+            self.writeData,
+            self.writeReg,
         )
         pprint(IDOut, expand_all=True)
 
         log("\nEXStage", Back.WHITE + Fore.BLACK)
-        EXOut = self.stages[2].excute(
+        EXOut = self.stages[2].RunWithNop(
+            self.stages[1].nop,
             IDOut["PC"],
             IDOut["instruction"],  # 暫時沒用到
             IDOut["immediate"],
@@ -62,7 +60,8 @@ class ControlUnit:
         pprint(EXOut, expand_all=True)
 
         log("\nMEMStage", Back.WHITE + Fore.BLACK)
-        MEMOut = self.stages[3].excute(
+        MEMOut = self.stages[3].RunWithNop(
+            self.stages[2].nop,
             EXOut["PC"],
             EXOut["instruction"],  # 暫時沒用到
             EXOut["control"],  # ["MemToReg", "RegWrite", "MemRead", "MemWrite"]
@@ -74,7 +73,8 @@ class ControlUnit:
         pprint(MEMOut, expand_all=True)
 
         log("\nWBStage", Back.WHITE + Fore.BLACK)
-        WBOut = self.stages[4].excute(
+        WBOut = self.stages[4].RunWithNop(
+            self.stages[3].nop,
             MEMOut["PC"],
             MEMOut["instruction"],  # 暫時沒用到
             MEMOut["control"],  # ["MemToReg", "RegWrite"]
@@ -82,11 +82,18 @@ class ControlUnit:
             MEMOut["ALUResult"],  # from EX STAGE ALUresult
             MEMOut["RegDstValue"],  # from EX STAGE RegDst 選的
         )
-        RegWrite = WBOut["control"]["RegWrite"]
-        writeReg = WBOut["WriteRegister"]
-        writeData = WBOut["WriteData"]
+        if not self.stages[4].nop:
+            self.RegWrite = WBOut["control"]["RegWrite"]
+            self.writeReg = WBOut["WriteRegister"]
+            self.writeData = WBOut["WriteData"]
         pprint(WBOut, expand_all=True)
-        pprint(self._MemAndReg)
+        self._MemAndReg.print()
+
+        # 終止條件
+        if self.stages[0].pc >= len(self.instructions):
+            if self.endInstruction:
+                return False
+            self.endInstruction = True
 
 
 class BaseStage(ABC):
@@ -97,7 +104,19 @@ class BaseStage(ABC):
     def __init__(self, ControlUnit: 'ControlUnit'):
         self._ControlUnit = ControlUnit
 
-    def excute(self):
+    def RunWithNop(self, nop: bool, *args):
+        self.nop = nop
+        self.EvenNop(*args)
+        if nop:
+            dict_ = defaultdict(lambda: None)
+            dict_["nop"] = True
+            return dict_
+        return self.excute(*args)
+
+    def EvenNop(self, *args):  # 就算是nop也要執行的
+        pass
+
+    def excute(self):  # 這個NOP = True的時候不會執行
         pass
 
     def showData(self):

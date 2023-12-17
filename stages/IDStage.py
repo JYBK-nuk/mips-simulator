@@ -16,7 +16,7 @@ class IDStage(BaseStage):
         WriteRegister: Union[str, None] = None,
     ):
         super().excute()
-        self.WriteBack(RegWrite, WriteData, WriteRegister)
+
         control: Dict[str, int] = {
             "RegDst": -1,
             "ALUSrc": -1,
@@ -53,10 +53,6 @@ class IDStage(BaseStage):
                 "nop": self.nop,
                 "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
                 "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
-                #
-                "immediate": dict(instruction)["immediate"]
-                if "immediate" in dict(instruction)
-                else None,
             }
 
             if instruction.opcode == "lw":
@@ -69,10 +65,24 @@ class IDStage(BaseStage):
         elif instruction.format == Format.JFORMAT:
             pass
 
+        self.output["immediate"] = (
+            dict(instruction)["immediate"] if "immediate" in dict(instruction) else None
+        )
+
         for key in control:
             control[key] = state.pop(0)
         self.output["control"] = control
         return self.output
+
+    def EvenNop(
+        self,
+        pc,
+        instruction: Instruction,
+        RegWrite: Union[int, None] = None,
+        WriteData: Union[int, None] = None,
+        WriteRegister: Union[str, None] = None,
+    ):
+        self.WriteBack(RegWrite, WriteData, WriteRegister)
 
     def WriteBack(self, RegWrite: int, WriteData: int, WriteRegister: str):
         if RegWrite != 1:

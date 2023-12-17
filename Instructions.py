@@ -27,8 +27,8 @@ def parse_sw_lw(args: list[str]):
 
 FormatTable = {
     # 放置順序與指令args順序不同
-    "add": [Format.RFORMAT, [2, 0, 1]],  # 2 = rd, 0 = rs, 1 = rt
-    "sub": [Format.RFORMAT, [2, 0, 1]],  # 2 = rd, 0 = rs, 1 = rt
+    "add": [Format.RFORMAT, [1, 2, 0]],  # 2 = rd, 0 = rs, 1 = rt
+    "sub": [Format.RFORMAT, [1, 2, 0]],  # 2 = rd, 0 = rs, 1 = rt
     "sw": [Format.IFORMAT, parse_sw_lw],
     "lw": [Format.IFORMAT, parse_sw_lw],
 }

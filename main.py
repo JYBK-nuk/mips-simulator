@@ -22,7 +22,7 @@ def main(args):
 
     log("Initialize registers and data memory", Fore.GREEN)
     _MemAndReg = MemAndReg()
-    pprint(_MemAndReg)
+    _MemAndReg.print()
 
     log("Start executing commands...", Fore.GREEN)
 

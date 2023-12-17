@@ -17,6 +17,7 @@ class EXStage(BaseStage):
     ):
         super().excute()
         alu_op = control["ALUOp"]
+        inputReadData2 = ReadData2  # if MemWrite == 1 MEM STAGE 會用到
 
         if control["ALUSrc"] == 1:
             # lw sw , ReadData2要變成讀取immediate
@@ -25,6 +26,12 @@ class EXStage(BaseStage):
             # (所以要記得在MEMStage要讀取ReadData2要除以4才會是在記憶體中的位置)
             # ps : 我們的記憶體是直接以4byte為單位 np.int32
             ReadData2 = immediate
+
+            # 為了我們的記憶體是直接以4byte為單位 np.int32 才這樣寫
+            if control["MemWrite"] == 1 or control["MemRead"] == 1:
+                if immediate % 4 != 0:
+                    raise Exception("Immediate must be multiple of 4")
+                ReadData2 = ReadData2 // 4
 
         if alu_op == "add":
             self.output = {
@@ -45,16 +52,15 @@ class EXStage(BaseStage):
         # if control["Branch"] == 1:
         # if self.output["ALUResult"] == 0: # 相等
         # .... pc = pc + 4 + 4*immediate
-            
-        
-        # 
+
+        #
 
         if control["RegDst"] == 1:
             self.output["RegDstValue"] = instruction.dict_['rd']
         else:
             self.output["RegDstValue"] = instruction.dict_['rt']
 
-        self.output["ReadData2"] = (ReadData2,)  # if MemWrite == 1 MEM STAGE 會用到
+        self.output["ReadData2"] = inputReadData2  # 這個是要傳給MEMStage的
 
         # 該stage 要傳給下一個stage的 control 值
         self.output["control"] = {}

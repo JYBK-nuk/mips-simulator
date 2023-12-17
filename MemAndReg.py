@@ -1,4 +1,10 @@
 import numpy as np
+from rich.pretty import pprint
+from colorama import Fore, Back, Style
+
+
+def log(string, color=Fore.WHITE):
+    print(color + string + Style.RESET_ALL)
 
 
 class MemAndReg:
@@ -9,23 +15,33 @@ class MemAndReg:
         self.reg = np.ones(32, dtype=np.int32)
         self.reg[0] = 0
         self.memory = np.ones(32, dtype=np.int32)
-
+        
+        # test data
+        self.memory[2] = 5
+        self.memory[4] = 6
 
 
     def getReg(self, key: str):
         # $0 => 0
+        log(F"Get {self.reg[int(key[1:])]} from Reg{key}", Fore.GREEN)
         return self.reg[int(key[1:])]
 
     def setReg(self, key: str, value: int):
+        log(F"Set Reg{key} to {value}", Fore.GREEN)
         self.reg[int(key[1:])] = value
         return value
 
     def getMem(self, address: int):
+        log(F"Get {self.memory[address]} from Mem${address}", Fore.GREEN)
         return self.memory[address]
 
     def setMem(self, address: int, value: int):
+        log(F"Set Mem${address} to {value}", Fore.GREEN)
         self.memory[address] = value
         return value
 
-    def __repr__(self) -> str:
-        return "Reg:\t" + str(self.reg) + "\nMem:\t" + str(self.memory)
+    def print(self):
+        print("Reg:")
+        pprint(self.reg)
+        print("Mem:")
+        pprint(self.memory)
