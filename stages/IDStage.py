@@ -7,15 +7,12 @@ class IDStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(
+    def execute(
         self,
         pc,
         instruction: Instruction,
-        RegWrite: Union[int, None] = None,
-        WriteData: Union[int, None] = None,
-        WriteRegister: Union[str, None] = None,
     ):
-        super().excute()
+        super().execute()
 
         control: Dict[str, int] = {
             "RegDst": -1,
@@ -73,19 +70,3 @@ class IDStage(BaseStage):
             control[key] = state.pop(0)
         self.output["control"] = control
         return self.output
-
-    def EvenNop(
-        self,
-        pc,
-        instruction: Instruction,
-        RegWrite: Union[int, None] = None,
-        WriteData: Union[int, None] = None,
-        WriteRegister: Union[str, None] = None,
-    ):
-        self.WriteBack(RegWrite, WriteData, WriteRegister)
-
-    def WriteBack(self, RegWrite: int, WriteData: int, WriteRegister: str):
-        if RegWrite != 1:
-            return
-        if WriteData is not None and WriteRegister is not None:
-            self._ControlUnit._MemAndReg.setReg(WriteRegister, WriteData)

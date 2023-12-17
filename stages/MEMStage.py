@@ -6,7 +6,7 @@ class MEMStage(BaseStage):
     def __init__(self, ParentUnit: ControlUnit):
         super().__init__(ParentUnit)
 
-    def excute(
+    def execute(
         self,
         pc: int,
         instruction: Instruction,
@@ -16,7 +16,7 @@ class MEMStage(BaseStage):
         AddrResult: int,
         RegDstValue: str,  # 這個是要存到哪個暫存器 在EXStage已經算好了 傳下去
     ):
-        super().excute()
+        super().execute()
         if control["MemWrite"] == 1:  # 大概是sw會用到
             self._ControlUnit._MemAndReg.setMem(ALUresult, ReadData2)
             self.output = {

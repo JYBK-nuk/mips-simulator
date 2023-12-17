@@ -13,6 +13,7 @@ def log(string, color=Fore.WHITE):
 def main(args):
     file = open(args.command, "r")
     commands = file.read().splitlines()
+    file.close()
     Instructions = [perLine.split(" ", 1) for perLine in commands]
     Instructions = [
         Instruction(opcode, args.replace(" ", "").split(",")) for opcode, args in Instructions
@@ -25,8 +26,9 @@ def main(args):
     _MemAndReg.print()
 
     log("Start executing commands...", Fore.GREEN)
-
-    controlUnit = ControlUnit(_MemAndReg, Instructions)
+    pipeline = "Y" == input("Use pipeline? (Y/N) ").upper()
+    log("")
+    controlUnit = ControlUnit(_MemAndReg, Instructions, pipeline)
     controlUnit.stages = [
         IFStage(controlUnit),
         IDStage(controlUnit),
@@ -34,9 +36,7 @@ def main(args):
         MEMStage(controlUnit),
         WBStage(controlUnit),
     ]
-    while True:
-        if controlUnit.run() is False:
-            break
+    controlUnit.start()
 
 
 if __name__ == "__main__":
