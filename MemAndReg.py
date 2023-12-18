@@ -13,13 +13,17 @@ class MemAndReg:
 
     def __init__(self):
         self.reg = np.ones(32, dtype=np.int32)
-        self.reg[0] = 0
         self.memory = np.ones(32, dtype=np.int32)
 
         # test data
-        # self.memory[2] = 4
-        # self.memory[4] = 6
+        # random memory
+        # for i in range(32):
+        #     self.memory[i] = np.random.randint(0, 100)
+        # # random register
+        # for i in range(32):
+        #     self.reg[i] = np.random.randint(0, 100)
 
+        self.reg[0] = 0
     def getReg(self, key: str):
         # $0 => 0
         log(f"Get {self.reg[int(key[1:])]} from Reg{key}", Fore.GREEN)
