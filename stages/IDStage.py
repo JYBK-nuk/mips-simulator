@@ -65,8 +65,28 @@ class IDStage(BaseStage):
         self.output["immediate"] = (
             dict(instruction)["immediate"] if "immediate" in dict(instruction) else None
         )
-
         for key in control:
             control[key] = state.pop(0)
         self.output["control"] = control
+        
+        #branch move to id
+        if self.output["control"]['Branch'] == 1:
+            compare=self.output["ReadData1"]-self.output["ReadData2"]
+            AddrADD=self.output["PC"]+int(self.output["immediate"])
+            if compare!=0:
+                self.output["Compare_ID"]=0
+                self.output["AddrADD_ID"]=AddrADD
+            else:
+                self.output["Compare_ID"]=1
+                self.output["AddrADD_ID"]=AddrADD
+                self.output["PC"]=AddrADD
+                self._ControlUnit.pipelineRegister['IF/ID']['nop']=True
+                self._ControlUnit.stages[0].pc = AddrADD
+                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
+                #                                           BEQ  LW   LW   0     0
+                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
+                #                                           ADD  BEQ  LW   LW    0
+                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
+                #                                           SW  ADD(NOP)  BEQ   LW    LW
+        
         return self.output
