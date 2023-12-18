@@ -44,27 +44,6 @@ class MEMStage(BaseStage):
                 "ReadData": ReadData,
                 "RegDstValue": RegDstValue,
             }
-        # elif control["Branch"] == 1:  # 如果branch
-        #     if ALUresult == 0:  # 看相減結果是否相等 from ex
-        #         self.output = {
-        #             "PC": AddrResult,
-        #             "instruction": instruction,
-        #             "nop": self.nop,
-        #             "ALUResult": ALUresult,
-        #             "ReadData": None,
-        #             "RegDstValue": RegDstValue,
-        #         }
-        #         self._ControlUnit.stages[0].pc = AddrResult  # 設定下次要執行的pc 反正沒branch就會跟原本一樣
-
-        #     else:
-        #         self.output = {
-        #             "PC": pc,
-        #             "instruction": instruction,
-        #             "nop": self.nop,
-        #             "ALUResult": ALUresult,
-        #             "ReadData": None,
-        #             "RegDstValue": RegDstValue,
-        #         }
         else:
             self.output = {
                 "PC": pc,
@@ -79,21 +58,25 @@ class MEMStage(BaseStage):
         # 該stage 要傳給下一個stage的 control 值
 
         # forwarding
-        if control["MemToReg"] == 1:
+        if self._ControlUnit.pipeline:
             if (
-                self.output["RegDstValue"]
-                == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])[
-                    "rs"
-                ]
+                control["RegWrite"] == 1
+                and "instruction" in self._ControlUnit.pipelineRegister["ID/EX"].keys()
             ):
-                self._ControlUnit.pipelineRegister["ID/EX"]["ReadData1"] = ReadData
-            if (
-                self.output["RegDstValue"]
-                == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])[
-                    "rt"
-                ]
-            ):
-                self._ControlUnit.pipelineRegister["ID/EX"]["ReadData2"] = ReadData
+                if (
+                    self.output["RegDstValue"]
+                    == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rs"]
+                ):
+                    self._ControlUnit.pipelineRegister["ID/EX"]["ReadData1"] = (
+                        ALUresult if control["MemRead"] == 0 else ReadData
+                    )
+                if (
+                    self.output["RegDstValue"]
+                    == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rt"]
+                ):
+                    self._ControlUnit.pipelineRegister["ID/EX"]["ReadData2"] = (
+                        ALUresult if control["MemRead"] == 0 else ReadData
+                    )
 
         self.output["control"] = {}
         for c in ["MemToReg", "RegWrite"]:

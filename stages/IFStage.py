@@ -11,12 +11,6 @@ class IFStage(BaseStage):
 
     def execute(self):
         super().execute()
-        for stage in self._ControlUnit.stages:
-            if False:
-                self.output = defaultdict(lambda: None)
-                self.output["nop"] = True
-                return self.output
-
         if self.pc >= len(self._ControlUnit.instructions):
             self.output = defaultdict(lambda: None)
             self.output["nop"] = True

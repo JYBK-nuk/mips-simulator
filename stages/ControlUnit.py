@@ -124,6 +124,8 @@ class ControlUnit:
 
         self.cycle += 1
 
+        # pprint(self.pipelineRegister, expand_all=True)
+
     def run(self):
         log(F"\n↓ Loop {(self.cycle//5)+1} ↓", Back.BLUE + Fore.WHITE)
 

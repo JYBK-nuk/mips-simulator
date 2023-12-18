@@ -27,14 +27,13 @@ class EXStage(BaseStage):
             # ps : 我們的記憶體是直接以4byte為單位 np.int32
             ReadData2 = immediate
 
-
         if alu_op == "add":
             self.output = {
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
                 "ALUResult": self.ALU("add", ReadData1, ReadData2),
-                "AddrResult": -1,#用不到設-1
+                "AddrResult": -1,  # 用不到設-1
             }
         elif alu_op == "sub":
             self.output = {
@@ -42,10 +41,12 @@ class EXStage(BaseStage):
                 "instruction": instruction,
                 "nop": self.nop,
                 "ALUResult": self.ALU("sub", ReadData1, ReadData2),
-                "AddrResult": self.ALU("add", pc, int(immediate)), #邏輯算要byte address 的運算 (pc*4 + immediate*4)/4
+                "AddrResult": self.ALU(
+                    "add", pc, int(immediate)
+                ),  # 邏輯算要byte address 的運算 (pc*4 + immediate*4)/4
             }
-        
-        #Branch的設值在mem 這裡純比較和算pc add
+
+        # Branch的設值在mem 這裡純比較和算pc add
 
         if control["RegDst"] == 1:
             self.output["RegDstValue"] = instruction.dict_['rd']
@@ -56,8 +57,27 @@ class EXStage(BaseStage):
 
         # 該stage 要傳給下一個stage的 control 值
         self.output["control"] = {}
-        for c in ["MemToReg", "RegWrite","Branch", "MemRead", "MemWrite"]:
+        for c in ["MemToReg", "RegWrite", "Branch", "MemRead", "MemWrite"]:
             self.output["control"][c] = control[c]
+
+        # forwarding
+        if self._ControlUnit.pipeline:
+            if "instruction" in self._ControlUnit.pipelineRegister["ID/EX"].keys():
+                if control["RegWrite"] == 1:
+                    if (
+                        self.output["RegDstValue"]
+                        == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rs"]
+                    ):
+                        self._ControlUnit.pipelineRegister["ID/EX"]["ReadData1"] = self.output[
+                            "ALUResult"
+                        ]
+                    if (
+                        self.output["RegDstValue"]
+                        == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rt"]
+                    ):
+                        self._ControlUnit.pipelineRegister["ID/EX"]["ReadData2"] = self.output[
+                            "ALUResult"
+                        ]
         return self.output
 
     def ALU(self, ALUop: str, data1: int, data2: int):

@@ -29,19 +29,11 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rs"]
-                ),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rt"]
-                ),
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
                 "rd": dict(instruction)["rd"] if "rd" in dict(instruction) else None,
-                "shamt": dict(instruction)["shamt"]
-                if "shamt" in dict(instruction)
-                else None,
-                "funct": dict(instruction)["funct"]
-                if "funct" in dict(instruction)
-                else None,
+                "shamt": dict(instruction)["shamt"] if "shamt" in dict(instruction) else None,
+                "funct": dict(instruction)["funct"] if "funct" in dict(instruction) else None,
                 #
             }
             state = [1, 0, 0, 1, 0, 0, 0]
@@ -55,12 +47,8 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rs"]
-                ),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rt"]
-                ),
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
             }
 
             if instruction.opcode == "lw":
@@ -99,19 +87,20 @@ class IDStage(BaseStage):
                 #                                           ADD  BEQ  LW   LW    0
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
                 #                                           SW  ADD(NOP)  BEQ   LW    LW
-
-        if control["MemToReg"] == 1:
-            if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
-                if (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
-                elif (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+        if self._ControlUnit.pipeline:
+            if control["MemToReg"] == 1:
+                if "rt" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
+                    if (
+                        dict(instruction)["rt"]
+                        == dict(self._ControlUnit.pipelineRegister["IF/ID"]["instruction"])["rs"]
+                    ):
+                        self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                        self._ControlUnit.stages[0].pc = self.output["PC"]
+                        # 因為這裡PC 要 keep 這個指令的PC
+                    elif (
+                        dict(instruction)["rt"]
+                        == dict(self._ControlUnit.pipelineRegister["IF/ID"]["instruction"])["rt"]
+                    ):
+                        self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                        self._ControlUnit.stages[0].pc = self.output["PC"]
         return self.output
