@@ -15,26 +15,26 @@ class MemAndReg:
         self.reg = np.ones(32, dtype=np.int32)
         self.reg[0] = 0
         self.memory = np.ones(32, dtype=np.int32)
+        self.memory[2] = 4
 
         # test data
 
-
     def getReg(self, key: str):
         # $0 => 0
-        log(F"Get {self.reg[int(key[1:])]} from Reg{key}", Fore.GREEN)
+        log(f"Get {self.reg[int(key[1:])]} from Reg{key}", Fore.GREEN)
         return self.reg[int(key[1:])]
 
     def setReg(self, key: str, value: int):
-        log(F"Set Reg{key} to {value}", Fore.GREEN)
+        log(f"Set Reg{key} to {value}", Fore.GREEN)
         self.reg[int(key[1:])] = value
         return value
 
     def getMem(self, address: int):
-        log(F"Get {self.memory[address]} from Mem${address}", Fore.GREEN)
+        log(f"Get {self.memory[address]} from Mem${address}", Fore.GREEN)
         return self.memory[address]
 
     def setMem(self, address: int, value: int):
-        log(F"Set Mem${address} to {value}", Fore.GREEN)
+        log(f"Set Mem${address} to {value}", Fore.GREEN)
         self.memory[address] = value
         return value
 

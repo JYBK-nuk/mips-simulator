@@ -29,12 +29,19 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
-                #
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(
+                    dict(instruction)["rs"]
+                ),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(
+                    dict(instruction)["rt"]
+                ),
                 "rd": dict(instruction)["rd"] if "rd" in dict(instruction) else None,
-                "shamt": dict(instruction)["shamt"] if "shamt" in dict(instruction) else None,
-                "funct": dict(instruction)["funct"] if "funct" in dict(instruction) else None,
+                "shamt": dict(instruction)["shamt"]
+                if "shamt" in dict(instruction)
+                else None,
+                "funct": dict(instruction)["funct"]
+                if "funct" in dict(instruction)
+                else None,
                 #
             }
             state = [1, 0, 0, 1, 0, 0, 0]
@@ -48,8 +55,12 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(
+                    dict(instruction)["rs"]
+                ),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(
+                    dict(instruction)["rt"]
+                ),
             }
 
             if instruction.opcode == "lw":
@@ -68,25 +79,39 @@ class IDStage(BaseStage):
         for key in control:
             control[key] = state.pop(0)
         self.output["control"] = control
-        
-        #branch move to id
-        if self.output["control"]['Branch'] == 1:
-            compare=self.output["ReadData1"]-self.output["ReadData2"]
-            AddrADD=self.output["PC"]+int(self.output["immediate"])
-            if compare!=0:
-                self.output["Compare_ID"]=0
-                self.output["AddrADD_ID"]=AddrADD
+
+        # branch move to id
+        if self.output["control"]["Branch"] == 1:
+            compare = self.output["ReadData1"] - self.output["ReadData2"]
+            AddrADD = self.output["PC"] + int(self.output["immediate"])
+            if compare != 0:
+                self.output["Compare_ID"] = 0
+                self.output["AddrADD_ID"] = AddrADD
             else:
-                self.output["Compare_ID"]=1
-                self.output["AddrADD_ID"]=AddrADD
-                self.output["PC"]=AddrADD
-                self._ControlUnit.pipelineRegister['IF/ID']['nop']=True
+                self.output["Compare_ID"] = 1
+                self.output["AddrADD_ID"] = AddrADD
+                self.output["PC"] = AddrADD
+                self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
                 self._ControlUnit.stages[0].pc = AddrADD
-                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
+                # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
                 #                                           BEQ  LW   LW   0     0
-                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
+                # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
                 #                                           ADD  BEQ  LW   LW    0
-                #need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
+                # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
                 #                                           SW  ADD(NOP)  BEQ   LW    LW
-        
+
+        if control["MemToReg"] == 1:
+            if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
+                if (
+                    dict(instruction)["rd"]
+                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
+                ):
+                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+                elif (
+                    dict(instruction)["rd"]
+                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
+                ):
+                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
         return self.output
