@@ -130,6 +130,7 @@ class ControlUnit:
         ###################以下是ID
         #這是判斷branch的data hazard(算術運算) 還沒有寫成general的 而且還沒有mem hazard的
         #因為是判斷data hazard的所以是在計算發生前確認
+        #而且要改拿pipelineRegister["EX/MEM"]的值 而不是原本的(未做)
         if self.pipelineRegister["IF/ID"]['nop']!=True and self.pipelineRegister["EX/MEM"]['nop'] != True:
             if self.pipelineRegister["IF/ID"]['instruction'].opcode=='beq':
                 log("beq check data hazard")

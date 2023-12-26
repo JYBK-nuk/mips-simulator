@@ -103,18 +103,18 @@ class IDStage(BaseStage):
         #要檢查branch data hazard lw只少要在前前前 所以 ex跟mem的MemToReg都要check
         #要檢查branch data hazard alu_op只少要在前前 所以 ex的MemToReg要check
         #rs rt都要個別檢查 且 ex優先於mem的hazard
-        # if control["MemToReg"] == 1:
-        #     if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
-        #         if (
-        #             dict(instruction)["rd"]
-        #             == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
-        #         ):
-        #             self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-        #             self._ControlUnit.stages[0].pc = self.output["PC"] - 1
-        #         elif (
-        #             dict(instruction)["rd"]
-        #             == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
-        #         ):
-        #             self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-        #             self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+        if control["MemToReg"] == 1:
+            if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
+                if (
+                    dict(instruction)["rd"]
+                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
+                ):
+                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+                elif (
+                    dict(instruction)["rd"]
+                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
+                ):
+                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
         return self.output
