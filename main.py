@@ -11,9 +11,11 @@ def log(string, color=Fore.WHITE):
 
 
 def main(args):
+    #args.command = "command.txt"
     file = open(args.command, "r")
     commands = file.read().splitlines()
     file.close()
+    #以空格切割指令 開檔中的每行 用空格切只切一次 分離出opcode(operation)和args(regs)
     Instructions = [perLine.split(" ", 1) for perLine in commands]
     Instructions = [
         Instruction(opcode, args.replace(" ", "").split(",")) for opcode, args in Instructions
@@ -43,6 +45,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
+    #參數解析
     parser.add_argument("command", help="command file", default="command.txt", nargs='?')
     parser.add_argument("result", help="result file", default="result.txt", nargs='?')
     args = parser.parse_args()

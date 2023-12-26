@@ -79,7 +79,7 @@ class IDStage(BaseStage):
         for key in control:
             control[key] = state.pop(0)
         self.output["control"] = control
-
+        self.output["Compare_ID"] = 0
         # branch move to id
         if self.output["control"]["Branch"] == 1:
             compare = self.output["ReadData1"] - self.output["ReadData2"]
@@ -91,6 +91,7 @@ class IDStage(BaseStage):
                 self.output["Compare_ID"] = 1
                 self.output["AddrADD_ID"] = AddrADD
                 self.output["PC"] = AddrADD
+                #需要將下面兩條暫存 因為現在是先ID 才 IF 現在改值IF做的時後又蓋掉=NO USE
                 self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
                 self._ControlUnit.stages[0].pc = AddrADD
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
@@ -99,19 +100,21 @@ class IDStage(BaseStage):
                 #                                           ADD  BEQ  LW   LW    0
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
                 #                                           SW  ADD(NOP)  BEQ   LW    LW
-
-        if control["MemToReg"] == 1:
-            if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
-                if (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
-                elif (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+        #要檢查branch data hazard lw只少要在前前前 所以 ex跟mem的MemToReg都要check
+        #要檢查branch data hazard alu_op只少要在前前 所以 ex的MemToReg要check
+        #rs rt都要個別檢查 且 ex優先於mem的hazard
+        # if control["MemToReg"] == 1:
+        #     if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
+        #         if (
+        #             dict(instruction)["rd"]
+        #             == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
+        #         ):
+        #             self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+        #             self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+        #         elif (
+        #             dict(instruction)["rd"]
+        #             == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
+        #         ):
+        #             self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
+        #             self._ControlUnit.stages[0].pc = self.output["PC"] - 1
         return self.output

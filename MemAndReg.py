@@ -15,7 +15,7 @@ class MemAndReg:
         self.reg = np.ones(32, dtype=np.int32)
         self.reg[0] = 0
         self.memory = np.ones(32, dtype=np.int32)
-        self.memory[2] = 4
+        #self.memory[2] = 4 要調回來ㄟ
 
         # test data
 

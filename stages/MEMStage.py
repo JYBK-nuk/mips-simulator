@@ -78,8 +78,8 @@ class MEMStage(BaseStage):
         # undo
         # 該stage 要傳給下一個stage的 control 值
 
-        # forwarding
-        if control["MemToReg"] == 1:
+        # forwarding 記得如果是Pipe才有的功能+一下and self._ControlUnit.pipeline==True
+        if control["MemToReg"] == 1 and self._ControlUnit.pipeline==True:
             if (
                 self.output["RegDstValue"]
                 == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])[
