@@ -14,6 +14,7 @@ class MemAndReg:
     def __init__(self):
         self.reg = np.ones(32, dtype=np.int32)
         self.memory = np.ones(32, dtype=np.int32)
+        #self.memory[6] = 4 
 
         # test data
         # random memory

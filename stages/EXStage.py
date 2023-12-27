@@ -14,11 +14,40 @@ class EXStage(BaseStage):
         control: dict,
         ReadData1: int,
         ReadData2: int,
+        LastCycleMEM_WB:dict[str, dict],
     ):
+        global ForwardA
+        global ForwardB
+        
+        
         super().execute()
         alu_op = control["ALUOp"]
         inputReadData2 = ReadData2  # if MemWrite == 1 MEM STAGE 會用到
-
+        
+        #forwarding unit會用到的 #預設都是00 如果EX HAZARD =>10 MEM =>01
+        ForwardA = '00'
+        ForwardB = '00'
+        if self._ControlUnit.pipeline==1:
+            self.forwardingUnit(LastCycleMEM_WB) # forwardUNIT判斷需不需要 FORWARDING
+            
+            #print(str(ForwardA)+'和b'+str(ForwardB)) #FOR TEST
+            if ForwardA == '00':
+                ReadData1 = ReadData1
+            elif ForwardA == '10':
+                ReadData1 = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
+            elif ForwardA == '01':
+                #ReadData1 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
+                ReadData1 = LastCycleMEM_WB["ALUResult"]
+                
+            if ForwardB == '00':
+                ReadData2 = ReadData2
+            elif ForwardB == '10':
+                ReadData2 = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
+            elif ForwardB == '01':
+                #ReadData2 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
+                ReadData2 = LastCycleMEM_WB["ALUResult"]
+            
+        
         if control["ALUSrc"] == 1:
             # lw sw , ReadData2要變成讀取immediate
             # 例如 lw 是 BaseAddress + Offset 的部分 (ReadData1 + immediate)
@@ -27,6 +56,8 @@ class EXStage(BaseStage):
             # ps : 我們的記憶體是直接以4byte為單位 np.int32
             ReadData2 = immediate
 
+        
+        # 這裡要算出來的是ALUResult
         if alu_op == "add":
             self.output = {
                 "PC": pc,
@@ -86,3 +117,48 @@ class EXStage(BaseStage):
         elif ALUop == "sub":  # 01
             value = data1 - data2
         return value
+    def forwardingUnit(self,Last): #!!!!這邊是數學運算的DATA HAZARD (LW/SW)的要做在ID
+        global ForwardA
+        global ForwardB
+        #如果ex hazard 就return 否則判斷mem hazard 不然就沒事
+        EX_MEM_pipe=self._ControlUnit.pipelineRegister["EX/MEM"]
+        MEM_WB_pipe=Last
+        ID_EX_pipe=self._ControlUnit.pipelineRegister["ID/EX"]
+        print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
+        #避免拿nop的內容來比會有問題
+        if ID_EX_pipe['nop']==True:
+            print('會去溜')
+            return
+        
+        #mem hazard    先MEM再EX這樣就算同時MEM和EX Hazard也會取到ex的
+        if MEM_WB_pipe['nop'] != True:
+            
+            if MEM_WB_pipe['instruction'].format != Format.RFORMAT:
+                print('回去溜')
+                return#要保證是前指令與前前指令都是r=format
+            
+            if MEM_WB_pipe['control']["RegWrite"] == 1 and MEM_WB_pipe["RegDstValue"]  != '$0':
+                #print('data-hazard!!!!!!!!!!!!!!!!!!!!!!!!')
+                if dict(ID_EX_pipe['instruction'])["rs"] == MEM_WB_pipe["RegDstValue"]:
+                    print('MEM_R-FORMAT DATA-HAZARD--RS')
+                    ForwardA='01'
+                if dict(ID_EX_pipe['instruction'])["rt"] == MEM_WB_pipe["RegDstValue"]:
+                    print('MEM_R-FORMAT DATA-HAZARD--RT')
+                    ForwardB='01'
+                    
+        if EX_MEM_pipe['nop'] != True:
+            
+            if EX_MEM_pipe['instruction'].format != Format.RFORMAT:
+                print('回去溜')
+                return#要保證是前指令與前前指令都是r=format
+            
+            if EX_MEM_pipe['control']["RegWrite"] == 1 and EX_MEM_pipe["RegDstValue"]  != '$0':
+                if dict(ID_EX_pipe['instruction'])["rs"] == EX_MEM_pipe["RegDstValue"]:
+                    print('EX_R-FORMAT DATA-HAZARD--RS')
+                    ForwardA='10'
+                if dict(ID_EX_pipe['instruction'])["rt"] == EX_MEM_pipe["RegDstValue"]:
+                    print('EX_R-FORMAT DATA-HAZARD--RT')
+                    ForwardB='10'
+        else:
+            ForwardA='00'
+            ForwardB='00'

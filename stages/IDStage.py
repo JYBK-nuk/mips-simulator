@@ -67,7 +67,7 @@ class IDStage(BaseStage):
         for key in control:
             control[key] = state.pop(0)
         self.output["control"] = control
-
+        self.output["Compare_ID"] = 0
         # branch move to id
         if self.output["control"]["Branch"] == 1:
             compare = self.output["ReadData1"] - self.output["ReadData2"]
@@ -79,6 +79,7 @@ class IDStage(BaseStage):
                 self.output["Compare_ID"] = 1
                 self.output["AddrADD_ID"] = AddrADD
                 self.output["PC"] = AddrADD
+                #需要將下面兩條暫存 因為現在是先ID 才 IF 現在改值IF做的時後又蓋掉=NO USE
                 self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
                 self._ControlUnit.stages[0].pc = AddrADD
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
@@ -87,20 +88,30 @@ class IDStage(BaseStage):
                 #                                           ADD  BEQ  LW   LW    0
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
                 #                                           SW  ADD(NOP)  BEQ   LW    LW
-        if self._ControlUnit.pipeline:
-            if control["MemToReg"] == 1:
-                if "rt" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
-                    if (
-                        dict(instruction)["rt"]
-                        == dict(self._ControlUnit.pipelineRegister["IF/ID"]["instruction"])["rs"]
-                    ):
-                        self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                        self._ControlUnit.stages[0].pc = self.output["PC"]
-                        # 因為這裡PC 要 keep 這個指令的PC
-                    elif (
-                        dict(instruction)["rt"]
-                        == dict(self._ControlUnit.pipelineRegister["IF/ID"]["instruction"])["rt"]
-                    ):
-                        self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                        self._ControlUnit.stages[0].pc = self.output["PC"]
+        #要檢查branch data hazard lw只少要在前前前 所以 ex跟mem的MemToReg都要check
+        #要檢查branch data hazard alu_op只少要在前前 所以 ex的MemToReg要check
+        #rs rt都要個別檢查 且 ex優先於mem的hazard
+        # HOW TO SELECT 是RS 還是 RT FORWARD
+        # if self._ControlUnit.StallFlag:
+        #     self.output["ReadData1"]=self._ControlUnit.pipelineRegister["EX/MEM"]['ALUResult'] #ex forward的內容
+        
+        self.hazardDetectionUnit()
         return self.output
+    
+    def hazardDetectionUnit(self):# if detect stall
+        if self._ControlUnit.pipelineRegister['ID/EX']['nop']==True:
+            return
+        ID_EX_TEMP=self._ControlUnit.pipelineRegister['ID/EX']
+        IF_ID_TEMP=self._ControlUnit.pipelineRegister['IF/ID']
+        if ID_EX_TEMP['control']['MemRead'] == 1:
+            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
+                #do stall and so that can 正常運作
+                self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                self._ControlUnit.PC_Write_Next_Cycle = 1
+                print('我lw黑色ㄌ哦')
+                pass
+            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
+                self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                self._ControlUnit.PC_Write_Next_Cycle = 1
+                print('我lw黑色ㄌ哦')
+                pass
