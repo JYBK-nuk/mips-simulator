@@ -106,18 +106,24 @@ class IDStage(BaseStage):
         # HOW TO SELECT 是RS 還是 RT FORWARD
         # if self._ControlUnit.StallFlag:
         #     self.output["ReadData1"]=self._ControlUnit.pipelineRegister["EX/MEM"]['ALUResult'] #ex forward的內容
-        if control["MemToReg"] == 1:
-            if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
-                if (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rs"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
-                elif (
-                    dict(instruction)["rd"]
-                    == self._ControlUnit.pipelineRegister["IF/ID"]["instruction"]["rt"]
-                ):
-                    self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                    self._ControlUnit.stages[0].pc = self.output["PC"] - 1
+        
+        self.hazardDetectionUnit()
         return self.output
+    
+    def hazardDetectionUnit(self):# if detect stall
+        if self._ControlUnit.pipelineRegister['ID/EX']['nop']==True:
+            return
+        ID_EX_TEMP=self._ControlUnit.pipelineRegister['ID/EX']
+        IF_ID_TEMP=self._ControlUnit.pipelineRegister['IF/ID']
+        if ID_EX_TEMP['control']['MemRead'] == 1:
+            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
+                #do stall and so that can 正常運作
+                self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                self._ControlUnit.PC_Write_Next_Cycle = 1
+                print('我lw黑色ㄌ哦')
+                pass
+            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
+                self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                self._ControlUnit.PC_Write_Next_Cycle = 1
+                print('我lw黑色ㄌ哦')
+                pass

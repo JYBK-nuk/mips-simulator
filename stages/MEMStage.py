@@ -18,6 +18,13 @@ class MEMStage(BaseStage):
     ):
         super().execute()
         # 為了我們的記憶體是直接以4byte為單位 np.int32 才這樣寫
+        
+        result=self.SW_datahazardUnit()
+        if result == 'ALU_HAZARD':
+            ReadData2=forwardingValue
+        elif result == 'MEM_HAZARD':
+            pass
+        print(ReadData2)
         if control["MemWrite"] == 1 or control["MemRead"] == 1:
             if ALUresult % 4 != 0:
                 raise Exception("Memory address must be multiple of 4")
@@ -99,3 +106,17 @@ class MEMStage(BaseStage):
         for c in ["MemToReg", "RegWrite"]:
             self.output["control"][c] = control[c]
         return self.output
+    def SW_datahazardUnit(self):#如果hazard發生 就把ReadData2改成forwarfing來的值
+        global forwardingValue
+        MemStage=self._ControlUnit.pipelineRegister['EX/MEM']
+        WbStage=self._ControlUnit.pipelineRegister['MEM/WB']
+        if MemStage['nop']==True or WbStage['nop']==True:
+            return
+        if MemStage['control']['MemWrite']==1:
+            if WbStage['control']["RegWrite"] == 1 and WbStage["RegDstValue"]  != '$0':
+                if MemStage["RegDstValue"]==WbStage["RegDstValue"]:
+                    forwardingValue=WbStage['ALUResult']
+                    return 'ALU_HAZARD'
+            pass
+            #如果前一指令是alu能直接抓
+        pass

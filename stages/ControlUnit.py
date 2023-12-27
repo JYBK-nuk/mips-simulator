@@ -22,6 +22,11 @@ class ControlUnit:
     StallFlag=False
     ControlHazardFlag=False #control hazard must occur on ID STAGE
     StallCount=0 #stall 幾次
+    PC_Write = 0 #如果1就是 STALL 不更新pc
+    PC_Write_Next_Cycle = 0 #因為backward 造成的
+    IF_ID_Write = 0
+    
+    
     
     pipelineRegister: dict[str, dict] = {
         "IF/ID": defaultdict(lambda: None),
@@ -75,11 +80,17 @@ class ControlUnit:
         #self.StallFlag=False
         log(F"\n↓ Cycle {(self.cycle) +1} ↓", Back.BLUE + Fore.WHITE)
 
-        #這邊是如果stall完要初始化狀態 stall會讓
+        #這邊是如果stall完要初始化狀態 stall會讓 
         if self.StallCount==0 and self.StallFlag:
             self.pipelineRegister["IF/ID"]['nop']=False
             self.StallFlag=False
-            
+        #更新狀態 THIS IS FOR I-FORMAT DATAHAZARD
+        self.PC_Write=self.PC_Write_Next_Cycle
+        print(self.PC_Write)
+        if self.PC_Write==1:
+            self.pipelineRegister["ID/EX"]['nop']=True
+            self.PC_Write_Next_Cycle=0
+        
             
         # Stages
         #以下是WB
@@ -159,7 +170,7 @@ class ControlUnit:
                         temp_pipe=self.pipelineRegister["IF/ID"]
                         log("ex data hazard rt")
         
-        #log("\nIDStage", Back.WHITE + Fore.BLACK)
+        
         
         IDOut = self.SaveAndGetpipelineRegister(
             "ID/EX",
@@ -168,6 +179,8 @@ class ControlUnit:
                 self.pipelineRegister["IF/ID"]["PC"], 
                 self.pipelineRegister["IF/ID"]["instruction"]),
         )
+        
+        
         if self.pipelineRegister["ID/EX"]["Compare_ID"] == 1:#這是control hazard
             self.ControlHazardFlag=True
         else:
@@ -184,7 +197,13 @@ class ControlUnit:
             "IF/ID", self.stages[0].RunWithNop(self.stages[0].nop)
         )
         
+        if self.PC_Write_Next_Cycle:
+            self.stages[0].pc=IFOut['PC']
+            print('STALL 中第IF不更新')
+            
         self.pipelineRegister_temp['IF']=self.pipelineRegister['IF/ID']
+        # Stages END
+        
         
         #print content
         log("\nIFStage", Back.WHITE + Fore.BLACK)
@@ -200,6 +219,11 @@ class ControlUnit:
     
         log("\n↑ End Cycle", Back.BLUE + Fore.WHITE)
         # 終止條件
+        
+        #後狀態更新
+        if self.IF_ID_Write: #I-FORMAT HAZARD
+            self.pipelineRegister["IF/ID"]=IFOut
+            self.IF_ID_Write=0
         
         if self.StallFlag:
             #如果stall就不要更新pc與IF/ID
