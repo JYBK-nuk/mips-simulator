@@ -35,6 +35,7 @@ class ControlUnit:
         "EX": defaultdict(lambda: None),
         "MEM": defaultdict(lambda: None),
         "WB": defaultdict(lambda: None),
+        "MEM/WB-TEMP": defaultdict(lambda: None),
         "CONTROL_HAZARD": defaultdict(lambda: None),
     }
 
@@ -57,6 +58,8 @@ class ControlUnit:
         return temp
     def print_fun(self,data: dict):
         pprint(data, expand_all=True)
+    def print_dict(self,data: str):
+        pass
     #啟動整個流程
     def start(self):
         if self.pipeline:
@@ -76,6 +79,8 @@ class ControlUnit:
         if self.StallCount==0 and self.StallFlag:
             self.pipelineRegister["IF/ID"]['nop']=False
             self.StallFlag=False
+            
+            
         # Stages
         #以下是WB
         #log("\nWBStage", Back.WHITE + Fore.BLACK)
@@ -96,6 +101,7 @@ class ControlUnit:
         ###################以下是MEM
     
         #log("\nMEMStage", Back.WHITE + Fore.BLACK)
+        self.pipelineRegister_temp['MEM/WB-TEMP']=self.pipelineRegister['MEM/WB']
         MEMOut = self.SaveAndGetpipelineRegister(
             "MEM/WB",
             self.stages[3].RunWithNop(
@@ -113,7 +119,6 @@ class ControlUnit:
         self.pipelineRegister_temp['MEM']=self.pipelineRegister['MEM/WB']
         ###################以下是EX
     
-        #log("\nEXStage", Back.WHITE + Fore.BLACK)
         EXOut = self.SaveAndGetpipelineRegister(
             "EX/MEM",
             self.stages[2].RunWithNop(
@@ -124,13 +129,19 @@ class ControlUnit:
                 self.pipelineRegister["ID/EX"]["control"],  # All control state
                 self.pipelineRegister["ID/EX"]["ReadData1"],
                 self.pipelineRegister["ID/EX"]["ReadData2"],
+                MEMOut
             ),
         )
         self.pipelineRegister_temp['EX']=self.pipelineRegister['EX/MEM']
+        if self.pipelineRegister["EX/MEM"]['nop']!=True:
+            pass
+            #pprint(dict(self.pipelineRegister["EX/MEM"]['instruction'])['rs'])
+            #pprint(self.pipelineRegister["EX/MEM"]['instruction'].format)
         ###################以下是ID
-        #這是判斷branch的data hazard(算術運算) 還沒有寫成general的 而且還沒有mem hazard的
+        
+        #這是判斷branch的data hazard(算術運算) 還沒有寫成general的 而且還沒有mem hazard的 可能可以移到IDStage
         #因為是判斷data hazard的所以是在計算發生前確認
-        #而且要改拿pipelineRegister["EX/MEM"]的值 而不是原本的(未做)
+        #這底下的Branch hazard 感覺可以移到IDStage
         if self.pipelineRegister["IF/ID"]['nop']!=True and self.pipelineRegister["EX/MEM"]['nop'] != True:
             if self.pipelineRegister["IF/ID"]['instruction'].opcode=='beq':
                 log("beq check data hazard")
@@ -149,6 +160,7 @@ class ControlUnit:
                         log("ex data hazard rt")
         
         #log("\nIDStage", Back.WHITE + Fore.BLACK)
+        
         IDOut = self.SaveAndGetpipelineRegister(
             "ID/EX",
             self.stages[1].RunWithNop(
@@ -163,17 +175,17 @@ class ControlUnit:
             
         self.pipelineRegister_temp['ID']=self.pipelineRegister['ID/EX']
         ##############################以下是IF
+        
+        #因為stall要防止更新pc 所以要暫存
         if self.StallFlag:
-            #因為stall要防止更新pc 所以要暫存
             previous_pc=self.stages[0].pc
-        #log("\nIFStage", Back.WHITE + Fore.BLACK)
+        
         IFOut = self.SaveAndGetpipelineRegister(
             "IF/ID", self.stages[0].RunWithNop(self.stages[0].nop)
         )
         
         self.pipelineRegister_temp['IF']=self.pipelineRegister['IF/ID']
-        ##############################
-    
+        
         #print content
         log("\nIFStage", Back.WHITE + Fore.BLACK)
         self.print_fun(self.pipelineRegister_temp['IF'])
@@ -188,17 +200,21 @@ class ControlUnit:
     
         log("\n↑ End Cycle", Back.BLUE + Fore.WHITE)
         # 終止條件
+        
         if self.StallFlag:
             #如果stall就不要更新pc與IF/ID
             self.stages[0].pc=previous_pc
             self.pipelineRegister["IF/ID"]=temp_pipe
             self.StallCount-=1
             #log(str(previous_pc))
+        
         if self.ControlHazardFlag:#如果control hazard 首先是設置下次跳轉的pc 然後IF/ID nop 但記得只會浪費一個cycle
             log(str(self.pipelineRegister["ID/EX"]["PC"]))
             self.stages[0].pc=self.pipelineRegister["ID/EX"]["PC"]
             self.pipelineRegister["IF/ID"]["nop"] = True
             self.ControlHazardFlag=False
+            
+            
         for stage in self.pipelineRegister.values():
             if stage["nop"] is False:
                 break
@@ -232,6 +248,7 @@ class ControlUnit:
             IDOut["control"],
             IDOut["ReadData1"],
             IDOut["ReadData2"],
+            -1,
         )
         pprint(EXOut, expand_all=True)
 

@@ -103,6 +103,9 @@ class IDStage(BaseStage):
         #要檢查branch data hazard lw只少要在前前前 所以 ex跟mem的MemToReg都要check
         #要檢查branch data hazard alu_op只少要在前前 所以 ex的MemToReg要check
         #rs rt都要個別檢查 且 ex優先於mem的hazard
+        # HOW TO SELECT 是RS 還是 RT FORWARD
+        # if self._ControlUnit.StallFlag:
+        #     self.output["ReadData1"]=self._ControlUnit.pipelineRegister["EX/MEM"]['ALUResult'] #ex forward的內容
         if control["MemToReg"] == 1:
             if "rd" in dict(instruction).keys():  # dict(instruction)["rd"] != None:
                 if (
