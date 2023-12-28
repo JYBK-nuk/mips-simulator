@@ -36,19 +36,11 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rs"]
-                ),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rt"]
-                ),
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
                 "rd": dict(instruction)["rd"] if "rd" in dict(instruction) else None,
-                "shamt": dict(instruction)["shamt"]
-                if "shamt" in dict(instruction)
-                else None,
-                "funct": dict(instruction)["funct"]
-                if "funct" in dict(instruction)
-                else None,
+                "shamt": dict(instruction)["shamt"] if "shamt" in dict(instruction) else None,
+                "funct": dict(instruction)["funct"] if "funct" in dict(instruction) else None,
                 #
             }
             state = [1, 0, 0, 1, 0, 0, 0]
@@ -62,12 +54,8 @@ class IDStage(BaseStage):
                 "PC": pc,
                 "instruction": instruction,
                 "nop": self.nop,
-                "ReadData1": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rs"]
-                ),
-                "ReadData2": self._ControlUnit._MemAndReg.getReg(
-                    dict(instruction)["rt"]
-                ),
+                "ReadData1": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rs"]),
+                "ReadData2": self._ControlUnit._MemAndReg.getReg(dict(instruction)["rt"]),
             }
 
             if instruction.opcode == "lw":

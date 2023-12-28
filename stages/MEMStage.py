@@ -51,27 +51,6 @@ class MEMStage(BaseStage):
                 "ReadData": ReadData,
                 "RegDstValue": RegDstValue,
             }
-        # elif control["Branch"] == 1:  # 如果branch
-        #     if ALUresult == 0:  # 看相減結果是否相等 from ex
-        #         self.output = {
-        #             "PC": AddrResult,
-        #             "instruction": instruction,
-        #             "nop": self.nop,
-        #             "ALUResult": ALUresult,
-        #             "ReadData": None,
-        #             "RegDstValue": RegDstValue,
-        #         }
-        #         self._ControlUnit.stages[0].pc = AddrResult  # 設定下次要執行的pc 反正沒branch就會跟原本一樣
-
-        #     else:
-        #         self.output = {
-        #             "PC": pc,
-        #             "instruction": instruction,
-        #             "nop": self.nop,
-        #             "ALUResult": ALUresult,
-        #             "ReadData": None,
-        #             "RegDstValue": RegDstValue,
-        #         }
         else:
             self.output = {
                 "PC": pc,

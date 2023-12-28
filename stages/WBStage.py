@@ -36,7 +36,6 @@ class WBStage(BaseStage):
         for c in ["RegWrite"]:
             self.output["control"][c] = control[c]
 
-
         # 這本應該串到IDStage 但是因為同時執行的關係 所以放到這裡
         self.WriteBack(
             self.output["control"]["RegWrite"],
@@ -51,3 +50,16 @@ class WBStage(BaseStage):
             return
         if WriteData is not None and WriteRegister is not None:
             self._ControlUnit._MemAndReg.setReg(WriteRegister, WriteData)
+            if not self._ControlUnit.pipeline:
+                return
+            if "instruction" in self._ControlUnit.pipelineRegister["ID/EX"].keys():
+                if (
+                    WriteRegister
+                    == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rs"]
+                ):
+                    self._ControlUnit.pipelineRegister["ID/EX"]["ReadData1"] = WriteData
+                if (
+                    WriteRegister
+                    == dict(self._ControlUnit.pipelineRegister["ID/EX"]["instruction"])["rt"]
+                ):
+                    self._ControlUnit.pipelineRegister["ID/EX"]["ReadData2"] = WriteData
