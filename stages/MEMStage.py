@@ -106,10 +106,14 @@ class MEMStage(BaseStage):
         for c in ["MemToReg", "RegWrite"]:
             self.output["control"][c] = control[c]
         return self.output
+    
     def SW_datahazardUnit(self):#如果hazard發生 就把ReadData2改成forwarfing來的值
+        #sw OK 其實他只會受到前一個指令的影響 前前的都已經WB完了所以沒差
         global forwardingValue
+        
         MemStage=self._ControlUnit.pipelineRegister['EX/MEM']
         WbStage=self._ControlUnit.pipelineRegister['MEM/WB']
+        
         if MemStage['nop']==True or WbStage['nop']==True:
             return
         if MemStage['control']['MemWrite']==1:

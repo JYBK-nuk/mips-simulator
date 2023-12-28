@@ -87,9 +87,9 @@ class ControlUnit:
         #更新狀態 THIS IS FOR I-FORMAT DATAHAZARD
         self.PC_Write=self.PC_Write_Next_Cycle
         print(self.PC_Write)
-        if self.PC_Write==1:
+        if self.PC_Write>=1:
             self.pipelineRegister["ID/EX"]['nop']=True
-            self.PC_Write_Next_Cycle=0
+            self.PC_Write_Next_Cycle-=1
         
             
         # Stages
@@ -153,22 +153,7 @@ class ControlUnit:
         #這是判斷branch的data hazard(算術運算) 還沒有寫成general的 而且還沒有mem hazard的 可能可以移到IDStage
         #因為是判斷data hazard的所以是在計算發生前確認
         #這底下的Branch hazard 感覺可以移到IDStage
-        if self.pipelineRegister["IF/ID"]['nop']!=True and self.pipelineRegister["EX/MEM"]['nop'] != True:
-            if self.pipelineRegister["IF/ID"]['instruction'].opcode=='beq':
-                log("beq check data hazard")
-                if self.pipelineRegister["EX/MEM"]['control']["RegWrite"] == 1 and self.pipelineRegister["EX/MEM"]["RegDstValue"]  != '$0':
-                    if dict(self.pipelineRegister["IF/ID"]['instruction'])["rs"] == self.pipelineRegister["EX/MEM"]["RegDstValue"]:
-                        self.pipelineRegister["IF/ID"]['nop']=True
-                        self.StallFlag=True#如果ex hazard就stall 1cylce
-                        self.StallCount=1
-                        temp_pipe=self.pipelineRegister["IF/ID"]#stall規則Prevent update of PC and IF/ID register
-                        log("ex data hazard rs")
-                    if dict(self.pipelineRegister["IF/ID"]['instruction'])["rt"] == self.pipelineRegister["EX/MEM"]["RegDstValue"]:
-                        self.pipelineRegister["IF/ID"]['nop']=True
-                        self.StallFlag=True
-                        self.StallCount=1
-                        temp_pipe=self.pipelineRegister["IF/ID"]
-                        log("ex data hazard rt")
+        
         
         
         
@@ -177,7 +162,9 @@ class ControlUnit:
             self.stages[1].RunWithNop(
                 self.pipelineRegister["IF/ID"]["nop"], 
                 self.pipelineRegister["IF/ID"]["PC"], 
-                self.pipelineRegister["IF/ID"]["instruction"]),
+                self.pipelineRegister["IF/ID"]["instruction"],
+                MEMOut
+            ),    
         )
         
         
@@ -221,14 +208,14 @@ class ControlUnit:
         # 終止條件
         
         #後狀態更新
-        if self.IF_ID_Write: #I-FORMAT HAZARD
+        if self.IF_ID_Write >=1: #I-FORMAT HAZARD
             self.pipelineRegister["IF/ID"]=IFOut
-            self.IF_ID_Write=0
+            self.IF_ID_Write-=1
         
         if self.StallFlag:
             #如果stall就不要更新pc與IF/ID
             self.stages[0].pc=previous_pc
-            self.pipelineRegister["IF/ID"]=temp_pipe
+            #self.pipelineRegister["IF/ID"]=temp_pipe
             self.StallCount-=1
             #log(str(previous_pc))
         
@@ -260,6 +247,7 @@ class ControlUnit:
             self.stages[0].nop,
             IFOut["PC"],
             IFOut["instruction"],
+            -1,
         )
         pprint(IDOut, expand_all=True)
 

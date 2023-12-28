@@ -37,7 +37,11 @@ class EXStage(BaseStage):
                 ReadData1 = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
             elif ForwardA == '01':
                 #ReadData1 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
-                ReadData1 = LastCycleMEM_WB["ALUResult"]
+                if LastCycleMEM_WB['nop']!=True:
+                    if LastCycleMEM_WB['control']['MemToReg'] == 1:
+                        ReadData2 = LastCycleMEM_WB["ReadData"]
+                else:
+                    ReadData2 = LastCycleMEM_WB["ALUResult"]
                 
             if ForwardB == '00':
                 ReadData2 = ReadData2
@@ -45,7 +49,12 @@ class EXStage(BaseStage):
                 ReadData2 = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
             elif ForwardB == '01':
                 #ReadData2 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
-                ReadData2 = LastCycleMEM_WB["ALUResult"]
+                print(LastCycleMEM_WB)
+                if LastCycleMEM_WB['nop']!=True:
+                    if LastCycleMEM_WB['control']['MemToReg'] == 1:
+                        ReadData1 = LastCycleMEM_WB["ReadData"]
+                else:
+                    ReadData2 = LastCycleMEM_WB["ALUResult"]
             
         
         if control["ALUSrc"] == 1:
@@ -65,6 +74,14 @@ class EXStage(BaseStage):
                 "nop": self.nop,
                 "ALUResult": self.ALU("add", ReadData1, ReadData2),
                 "AddrResult": -1,#用不到設-1
+            }
+        elif alu_op == "sub" and control['RegDst'] == 1:
+            self.output = {
+                "PC": pc,
+                "instruction": instruction,
+                "nop": self.nop,
+                "ALUResult": self.ALU("sub", ReadData1, ReadData2),
+                "AddrResult": -1, #邏輯算要byte address 的運算 (pc*4 + immediate*4)/4
             }
         elif alu_op == "sub":
             self.output = {
@@ -96,6 +113,8 @@ class EXStage(BaseStage):
         elif ALUop == "sub":  # 01
             value = data1 - data2
         return value
+    
+    
     def forwardingUnit(self,Last): #!!!!這邊是數學運算的DATA HAZARD (LW/SW)的要做在ID
         global ForwardA
         global ForwardB
@@ -105,16 +124,16 @@ class EXStage(BaseStage):
         ID_EX_pipe=self._ControlUnit.pipelineRegister["ID/EX"]
         print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
         #避免拿nop的內容來比會有問題
-        if ID_EX_pipe['nop']==True:
+        if ID_EX_pipe['nop']==True or ID_EX_pipe['control']['Branch'] == 1:
             print('會去溜')
             return
         
         #mem hazard    先MEM再EX這樣就算同時MEM和EX Hazard也會取到ex的
         if MEM_WB_pipe['nop'] != True:
             
-            if MEM_WB_pipe['instruction'].format != Format.RFORMAT:
-                print('回去溜')
-                return#要保證是前指令與前前指令都是r=format
+            # if MEM_WB_pipe['instruction'].format != Format.RFORMAT:
+            #     print('回去溜')
+            #     return#要保證是前指令與前前指令都是r=format
             
             if MEM_WB_pipe['control']["RegWrite"] == 1 and MEM_WB_pipe["RegDstValue"]  != '$0':
                 #print('data-hazard!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -127,9 +146,7 @@ class EXStage(BaseStage):
                     
         if EX_MEM_pipe['nop'] != True:
             
-            if EX_MEM_pipe['instruction'].format != Format.RFORMAT:
-                print('回去溜')
-                return#要保證是前指令與前前指令都是r=format
+            
             
             if EX_MEM_pipe['control']["RegWrite"] == 1 and EX_MEM_pipe["RegDstValue"]  != '$0':
                 if dict(ID_EX_pipe['instruction'])["rs"] == EX_MEM_pipe["RegDstValue"]:
@@ -139,5 +156,4 @@ class EXStage(BaseStage):
                     print('EX_R-FORMAT DATA-HAZARD--RT')
                     ForwardB='10'
         else:
-            ForwardA='00'
-            ForwardB='00'
+            pass

@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     #參數解析
-    parser.add_argument("command", help="command file", default="command.txt", nargs='?')
+    parser.add_argument("command", help="command file", default="memory.txt", nargs='?')
     parser.add_argument("result", help="result file", default="result.txt", nargs='?')
     args = parser.parse_args()
     main(args)
