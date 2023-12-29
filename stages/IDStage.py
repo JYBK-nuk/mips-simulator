@@ -12,6 +12,7 @@ class IDStage(BaseStage):
         pc,
         instruction: Instruction,
         LastCycleMEM_WB:dict[str, dict],
+        LastCycleEX_MEM:dict[str, dict],
     ):
         global ForwardA
         global ForwardB
@@ -79,45 +80,52 @@ class IDStage(BaseStage):
         # branch move to id
         #這邊要先測DATA HAZARD
         Do_Compare=True
-        if self._ControlUnit.pipeline:
+        if self._ControlUnit.pipeline and self._ControlUnit.PC_Write_Next_Cycle==0:
             Do_Compare=self.hazardDetectionUnit()
+            print("DO_COMPARE的結果:"+str(Do_Compare))
             if instruction.opcode == "beq":
-                self.forwardingUnit(LastCycleMEM_WB)
+                if Do_Compare == True:
+                    self.forwardingUnit(LastCycleMEM_WB,LastCycleEX_MEM)
             if self.output['ReadData1'] == '00':
                 self.output['ReadData1'] = self.output['ReadData1']
             elif ForwardA == '10':
-                self.output['ReadData1'] = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
+                self.output['ReadData1'] = LastCycleEX_MEM["ALUResult"]
             elif ForwardA == '01':
                 #ReadData1 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
-                if LastCycleMEM_WB['control']['MemRead'] == 1:
-                    self.output['ReadData1'] = LastCycleMEM_WB["ReadData"]
+                if LastCycleMEM_WB['nop']!=True:
+                    if LastCycleMEM_WB['control']['MemToReg'] == 1:
+                        self.output['ReadData1'] = LastCycleMEM_WB["ReadData"]
                 else:
+                    print("拿ALUResult")
                     self.output['ReadData1'] = LastCycleMEM_WB["ALUResult"]
                 
             if ForwardB == '00':
                 self.output['ReadData2'] = self.output['ReadData2']
             elif ForwardB == '10':
-                self.output['ReadData2'] = self._ControlUnit.pipelineRegister["EX/MEM"]["ALUResult"]
+                self.output['ReadData2'] = LastCycleEX_MEM["ALUResult"]
             elif ForwardB == '01':
                 #ReadData2 = self._ControlUnit.pipelineRegister["MEM/WB"]["ALUResult"]
-                if LastCycleMEM_WB['control']['MemRead'] == 1:
-                    self.output['ReadData2'] = LastCycleMEM_WB["ReadData"]
+                if LastCycleMEM_WB['nop']!=True:
+                    if LastCycleMEM_WB['control']['MemToReg'] == 1:
+                        self.output['ReadData2'] = LastCycleMEM_WB["ReadData"]
                 else:
+                    print("拿ALUResult")
                     self.output['ReadData2'] = LastCycleMEM_WB["ALUResult"]
             
-        if self.output["control"]["Branch"] == 1 and Do_Compare:
+        if self.output["control"]["Branch"] == 1 and Do_Compare and self._ControlUnit.PC_Write_Next_Cycle==0:
+            print("有比較")
             compare = self.output["ReadData1"] - self.output["ReadData2"]
             AddrADD = self.output["PC"] + int(self.output["immediate"])
             if compare != 0:
                 self.output["Compare_ID"] = 0
                 self.output["AddrADD_ID"] = AddrADD
             else:
-                self.output["Compare_ID"] = 0
+                self.output["Compare_ID"] = 1
                 self.output["AddrADD_ID"] = AddrADD
                 self.output["PC"] = AddrADD
                 #需要將下面兩條暫存 因為現在是先ID 才 IF 現在改值IF做的時後又蓋掉=NO USE
                 self._ControlUnit.pipelineRegister["IF/ID"]["nop"] = True
-                self._ControlUnit.stages[0].pc = AddrADD
+                #self._ControlUnit.stages[0].pc = AddrADD
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   上個CYCLE
                 #                                           BEQ  LW   LW   0     0
                 # need to NOP 一次 在PIPELINE的部分  EX STEP IF   ID   EX   MEM   WB   下個CYCLE
@@ -135,30 +143,30 @@ class IDStage(BaseStage):
         return self.output
     
     def hazardDetectionUnit(self):# if detect stall
-        if self._ControlUnit.pipelineRegister['ID/EX']['nop']==True:
-            return
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvv')
         IF_ID_TEMP=self._ControlUnit.pipelineRegister['IF/ID']
         ID_EX_TEMP=self._ControlUnit.pipelineRegister['ID/EX']
         EX_MEM_TEMP=self._ControlUnit.pipelineRegister['EX/MEM']
         MEM_WB_TEMP=self._ControlUnit.pipelineRegister['MEM/WB']
-        if ID_EX_TEMP['control']['MemRead'] == 1:
-            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
-                #do stall and so that can 正常運作
-                self._ControlUnit.IF_ID_Write = 1 #IF不更新
-                self._ControlUnit.PC_Write_Next_Cycle = 1
-                print('我lw黑色ㄌ哦')
-                pass
-            if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
-                self._ControlUnit.IF_ID_Write = 1 #IF不更新
-                self._ControlUnit.PC_Write_Next_Cycle = 1
-                print('我lw黑色ㄌ哦')
-                pass
+        if self._ControlUnit.pipelineRegister['ID/EX']['nop']!=True:
+            if ID_EX_TEMP['control']['MemRead'] == 1 and ID_EX_TEMP['instruction'].format==Format.RFORMAT:
+                if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
+                    #do stall and so that can 正常運作
+                    self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                    self._ControlUnit.PC_Write_Next_Cycle = 1
+                    print('我lw黑色ㄌ哦')
+                    return False
+                if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
+                    self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                    self._ControlUnit.PC_Write_Next_Cycle = 1
+                    print('我lw黑色ㄌ哦')
+                    return False
             
         if IF_ID_TEMP['nop']!=True and EX_MEM_TEMP['nop'] != True:
             if IF_ID_TEMP['instruction'].opcode=='beq':
                 print("---------------beq check data hazard------------------")
                 #R-FORMAT要至少前前條 所以在前條偵測到的話就要stall 然後才能FORWARD
-                if EX_MEM_TEMP['control']["RegWrite"] == 1 and EX_MEM_TEMP["RegDstValue"]  != '$0':
+                if EX_MEM_TEMP['control']["RegWrite"] == 1 and EX_MEM_TEMP["RegDstValue"]  != '$0' and EX_MEM_TEMP['instruction'].format==Format.RFORMAT:
                     if dict(IF_ID_TEMP['instruction'])["rs"] == EX_MEM_TEMP["RegDstValue"]:
                         self._ControlUnit.IF_ID_Write = 1 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 1
@@ -170,19 +178,6 @@ class IDStage(BaseStage):
                         print("Branch data hazard偵測到R-FORMAT在前一行 rt")
                         return False #return false 代表這次不比較
                 #lw有兩種情況 如果是前前指令(看MEM/WB) 要停一次 如果是前指令 要停兩次()
-                if MEM_WB_TEMP['control']['MemRead'] == 1:
-                    #前 是要forward過來的 
-                    if dict(MEM_WB_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
-                        #do stall and so that can 正常運作
-                        self._ControlUnit.IF_ID_Write = 1 #IF不更新
-                        self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print('Branch data hazard偵測到LW在前前一行 rs')
-                        pass
-                    if dict(MEM_WB_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
-                        self._ControlUnit.IF_ID_Write = 1 #IF不更新
-                        self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print('Branch data hazard偵測到LW在前前一行 rt')
-                        pass
                 #停2次
                 if EX_MEM_TEMP['control']['MemRead'] == 1:
                     #前 是要forward過來的 
@@ -191,27 +186,42 @@ class IDStage(BaseStage):
                         self._ControlUnit.IF_ID_Write = 2 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 2
                         print('Branch data hazard偵測到LW在前一行 rs')
-                        pass
+                        return False
                     if dict(EX_MEM_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
                         self._ControlUnit.IF_ID_Write = 2 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 2
                         print('Branch data hazard偵測到LW在前一行 rt')
-                        pass
+                        return False
+                if MEM_WB_TEMP['control']['MemToReg'] == 1 and EX_MEM_TEMP['instruction'].format==Format.IFORMAT:
+                    #前 是要forward過來的 
+                    if dict(MEM_WB_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
+                        #do stall and so that can 正常運作
+                        self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                        self._ControlUnit.PC_Write_Next_Cycle = 1
+                        print('Branch data hazard偵測到LW在前前一行 rs')
+                        return False
+                    if dict(MEM_WB_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
+                        self._ControlUnit.IF_ID_Write = 1 #IF不更新
+                        self._ControlUnit.PC_Write_Next_Cycle = 1
+                        print('Branch data hazard偵測到LW在前前一行 rt')
+                        return False
+
             else:
-                return
+                return True
+        return True
     #要在ID FORWARD 
-    def forwardingUnit(self,Last): #因為branch data hazard要在id 解決 so i must do here
+    def forwardingUnit(self,Last,LastEX): #因為branch data hazard要在id 解決 so i must do here
         #運作跟ex的那套一模一樣
         global ForwardA
         global ForwardB
         #如果ex hazard 就return 否則判斷mem hazard 不然就沒事
-        EX_MEM_pipe=self._ControlUnit.pipelineRegister["EX/MEM"]
+        EX_MEM_pipe=LastEX
         MEM_WB_pipe=Last
         ID_EX_pipe=self.output
         print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
         #避免拿nop的內容來比會有問題
         if ID_EX_pipe['nop']==True:
-            print('會去溜')
+            print('會去溜ID')
             return
         
         #mem hazard    先MEM再EX這樣就算同時MEM和EX Hazard也會取到ex的

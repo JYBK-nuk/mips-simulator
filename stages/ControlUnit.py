@@ -80,17 +80,16 @@ class ControlUnit:
         #self.StallFlag=False
         log(F"\n↓ Cycle {(self.cycle) +1} ↓", Back.BLUE + Fore.WHITE)
 
-        #這邊是如果stall完要初始化狀態 stall會讓 
-        if self.StallCount==0 and self.StallFlag:
-            self.pipelineRegister["IF/ID"]['nop']=False
-            self.StallFlag=False
+        
         #更新狀態 THIS IS FOR I-FORMAT DATAHAZARD
         self.PC_Write=self.PC_Write_Next_Cycle
-        print(self.PC_Write)
         if self.PC_Write>=1:
             self.pipelineRegister["ID/EX"]['nop']=True
             self.PC_Write_Next_Cycle-=1
-        
+            self.IF_ID_Write-=1
+        print("現在的PC_Write:"+str(self.PC_Write))
+        print("現在的PC_Write_Next_Cycle:"+str(self.PC_Write_Next_Cycle))
+        print("現在的IF_ID_Write:"+str(self.IF_ID_Write))
             
         # Stages
         #以下是WB
@@ -163,7 +162,8 @@ class ControlUnit:
                 self.pipelineRegister["IF/ID"]["nop"], 
                 self.pipelineRegister["IF/ID"]["PC"], 
                 self.pipelineRegister["IF/ID"]["instruction"],
-                MEMOut
+                MEMOut,
+                EXOut
             ),    
         )
         
@@ -177,9 +177,8 @@ class ControlUnit:
         ##############################以下是IF
         
         #因為stall要防止更新pc 所以要暫存
-        if self.StallFlag:
-            previous_pc=self.stages[0].pc
-        
+        print('sdsadsadsadasd\n')
+        print(self.stages[0].pc)
         IFOut = self.SaveAndGetpipelineRegister(
             "IF/ID", self.stages[0].RunWithNop(self.stages[0].nop)
         )
@@ -210,17 +209,10 @@ class ControlUnit:
         #後狀態更新
         if self.IF_ID_Write >=1: #I-FORMAT HAZARD
             self.pipelineRegister["IF/ID"]=IFOut
-            self.IF_ID_Write-=1
         
-        if self.StallFlag:
-            #如果stall就不要更新pc與IF/ID
-            self.stages[0].pc=previous_pc
-            #self.pipelineRegister["IF/ID"]=temp_pipe
-            self.StallCount-=1
-            #log(str(previous_pc))
         
         if self.ControlHazardFlag:#如果control hazard 首先是設置下次跳轉的pc 然後IF/ID nop 但記得只會浪費一個cycle
-            log(str(self.pipelineRegister["ID/EX"]["PC"]))
+            #print(str(self.pipelineRegister["ID/EX"]))
             self.stages[0].pc=self.pipelineRegister["ID/EX"]["PC"]
             self.pipelineRegister["IF/ID"]["nop"] = True
             self.ControlHazardFlag=False
@@ -262,6 +254,7 @@ class ControlUnit:
             IDOut["control"],
             IDOut["ReadData1"],
             IDOut["ReadData2"],
+            -1,
             -1,
         )
         pprint(EXOut, expand_all=True)

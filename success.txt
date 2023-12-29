@@ -1,2 +1,4 @@
 EXAMPLE 1 cycle and result correct
 EXAMPLE 2 cycle and result correct
+EXAMPLE 3 cycle and result correct
+EXAMPLE 4 cycle and result correct
