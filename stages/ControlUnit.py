@@ -242,6 +242,7 @@ class ControlUnit:
             IFOut["PC"],
             IFOut["instruction"],
             -1,
+            -1,
         )
         pprint(IDOut, expand_all=True)
 
@@ -254,7 +255,6 @@ class ControlUnit:
             IDOut["control"],
             IDOut["ReadData1"],
             IDOut["ReadData2"],
-            -1,
             -1,
         )
         pprint(EXOut, expand_all=True)

@@ -142,14 +142,14 @@ class IDStage(BaseStage):
         #self.hazardDetectionUnit()
         return self.output
     
+    
     def hazardDetectionUnit(self):# if detect stall
-        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvv')
         IF_ID_TEMP=self._ControlUnit.pipelineRegister['IF/ID']
         ID_EX_TEMP=self._ControlUnit.pipelineRegister['ID/EX']
         EX_MEM_TEMP=self._ControlUnit.pipelineRegister['EX/MEM']
         MEM_WB_TEMP=self._ControlUnit.pipelineRegister['MEM/WB']
         if self._ControlUnit.pipelineRegister['ID/EX']['nop']!=True:
-            if ID_EX_TEMP['control']['MemRead'] == 1 and ID_EX_TEMP['instruction'].format==Format.RFORMAT:
+            if ID_EX_TEMP['control']['MemRead'] == 1 and IF_ID_TEMP['instruction'].opcode!='beq':
                 if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rs"]:
                     #do stall and so that can 正常運作
                     self._ControlUnit.IF_ID_Write = 1 #IF不更新
