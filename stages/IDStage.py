@@ -82,7 +82,7 @@ class IDStage(BaseStage):
         Do_Compare=True
         if self._ControlUnit.pipeline and self._ControlUnit.PC_Write_Next_Cycle==0:
             Do_Compare=self.hazardDetectionUnit()
-            print("DO_COMPARE的結果:"+str(Do_Compare))
+            #print("DO_COMPARE的結果:"+str(Do_Compare))
             if instruction.opcode == "beq":
                 if Do_Compare == True:
                     self.forwardingUnit(LastCycleMEM_WB,LastCycleEX_MEM)
@@ -96,7 +96,7 @@ class IDStage(BaseStage):
                     if LastCycleMEM_WB['control']['MemToReg'] == 1:
                         self.output['ReadData1'] = LastCycleMEM_WB["ReadData"]
                 else:
-                    print("拿ALUResult")
+                    #print("拿ALUResult")
                     self.output['ReadData1'] = LastCycleMEM_WB["ALUResult"]
                 
             if ForwardB == '00':
@@ -113,7 +113,7 @@ class IDStage(BaseStage):
                     self.output['ReadData2'] = LastCycleMEM_WB["ALUResult"]
             
         if self.output["control"]["Branch"] == 1 and Do_Compare and self._ControlUnit.PC_Write_Next_Cycle==0:
-            print("有比較")
+            #print("有比較")
             compare = self.output["ReadData1"] - self.output["ReadData2"]
             AddrADD = self.output["PC"] + int(self.output["immediate"])
             if compare != 0:
@@ -154,28 +154,28 @@ class IDStage(BaseStage):
                     #do stall and so that can 正常運作
                     self._ControlUnit.IF_ID_Write = 1 #IF不更新
                     self._ControlUnit.PC_Write_Next_Cycle = 1
-                    print('我lw黑色ㄌ哦')
+                    #print('我lw黑色ㄌ哦')
                     return False
                 if dict(ID_EX_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
                     self._ControlUnit.IF_ID_Write = 1 #IF不更新
                     self._ControlUnit.PC_Write_Next_Cycle = 1
-                    print('我lw黑色ㄌ哦')
+                    #print('我lw黑色ㄌ哦')
                     return False
             
         if IF_ID_TEMP['nop']!=True and EX_MEM_TEMP['nop'] != True:
             if IF_ID_TEMP['instruction'].opcode=='beq':
-                print("---------------beq check data hazard------------------")
+                #print("---------------beq check data hazard------------------")
                 #R-FORMAT要至少前前條 所以在前條偵測到的話就要stall 然後才能FORWARD
                 if EX_MEM_TEMP['control']["RegWrite"] == 1 and EX_MEM_TEMP["RegDstValue"]  != '$0' and EX_MEM_TEMP['instruction'].format==Format.RFORMAT:
                     if dict(IF_ID_TEMP['instruction'])["rs"] == EX_MEM_TEMP["RegDstValue"]:
                         self._ControlUnit.IF_ID_Write = 1 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print("Branch data hazard偵測到R-FORMAT在前一行 rs")
+                        #print("Branch data hazard偵測到R-FORMAT在前一行 rs")
                         return False #return false 代表這次不比較
                     if dict(IF_ID_TEMP['instruction'])["rt"] == EX_MEM_TEMP["RegDstValue"]:
                         self._ControlUnit.IF_ID_Write = 1 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print("Branch data hazard偵測到R-FORMAT在前一行 rt")
+                        #print("Branch data hazard偵測到R-FORMAT在前一行 rt")
                         return False #return false 代表這次不比較
                 #lw有兩種情況 如果是前前指令(看MEM/WB) 要停一次 如果是前指令 要停兩次()
                 #停2次
@@ -185,12 +185,12 @@ class IDStage(BaseStage):
                         #do stall and so that can 正常運作
                         self._ControlUnit.IF_ID_Write = 2 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 2
-                        print('Branch data hazard偵測到LW在前一行 rs')
+                        #print('Branch data hazard偵測到LW在前一行 rs')
                         return False
                     if dict(EX_MEM_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
                         self._ControlUnit.IF_ID_Write = 2 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 2
-                        print('Branch data hazard偵測到LW在前一行 rt')
+                        #print('Branch data hazard偵測到LW在前一行 rt')
                         return False
                 if MEM_WB_TEMP['control']['MemToReg'] == 1 and EX_MEM_TEMP['instruction'].format==Format.IFORMAT:
                     #前 是要forward過來的 
@@ -198,12 +198,12 @@ class IDStage(BaseStage):
                         #do stall and so that can 正常運作
                         self._ControlUnit.IF_ID_Write = 1 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print('Branch data hazard偵測到LW在前前一行 rs')
+                        #print('Branch data hazard偵測到LW在前前一行 rs')
                         return False
                     if dict(MEM_WB_TEMP['instruction'])["rt"] == dict(IF_ID_TEMP['instruction'])["rt"]:
                         self._ControlUnit.IF_ID_Write = 1 #IF不更新
                         self._ControlUnit.PC_Write_Next_Cycle = 1
-                        print('Branch data hazard偵測到LW在前前一行 rt')
+                        #print('Branch data hazard偵測到LW在前前一行 rt')
                         return False
 
             else:
@@ -218,7 +218,7 @@ class IDStage(BaseStage):
         EX_MEM_pipe=LastEX
         MEM_WB_pipe=Last
         ID_EX_pipe=self.output
-        print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
+        #print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
         #避免拿nop的內容來比會有問題
         if ID_EX_pipe['nop']==True:
             print('會去溜ID')
@@ -234,10 +234,10 @@ class IDStage(BaseStage):
             if MEM_WB_pipe['control']["RegWrite"] == 1 and MEM_WB_pipe["RegDstValue"]  != '$0':
                 #print('data-hazard!!!!!!!!!!!!!!!!!!!!!!!!')
                 if dict(ID_EX_pipe['instruction'])["rs"] == MEM_WB_pipe["RegDstValue"]:
-                    print('BRANCH MEM_DATA HAZARD--RS')
+                    #print('BRANCH MEM_DATA HAZARD--RS')
                     ForwardA='01'
                 if dict(ID_EX_pipe['instruction'])["rt"] == MEM_WB_pipe["RegDstValue"]:
-                    print('BRANCH MEM_DATA HAZARD--RT')
+                    #print('BRANCH MEM_DATA HAZARD--RT')
                     ForwardB='01'
                     
         if EX_MEM_pipe['nop'] != True:
@@ -246,10 +246,10 @@ class IDStage(BaseStage):
             
             if EX_MEM_pipe['control']["RegWrite"] == 1 and EX_MEM_pipe["RegDstValue"]  != '$0':
                 if dict(ID_EX_pipe['instruction'])["rs"] == EX_MEM_pipe["RegDstValue"]:
-                    print('BRANCH EX_DATA HAZARD---RS')
+                    #print('BRANCH EX_DATA HAZARD---RS')
                     ForwardA='10'
                 if dict(ID_EX_pipe['instruction'])["rt"] == EX_MEM_pipe["RegDstValue"]:
-                    print('BRANCH EX_DATA HAZARD--RT')
+                    #print('BRANCH EX_DATA HAZARD--RT')
                     ForwardB='10'
         else:
             pass

@@ -143,10 +143,10 @@ class EXStage(BaseStage):
         EX_MEM_pipe=self._ControlUnit.pipelineRegister["EX/MEM"]
         MEM_WB_pipe=Last
         ID_EX_pipe=self._ControlUnit.pipelineRegister["ID/EX"]
-        print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
+        #print(str(EX_MEM_pipe['PC'])+' mem/wb的pc '+str(MEM_WB_pipe['PC']))
         #避免拿nop的內容來比會有問題
         if ID_EX_pipe['nop']==True or ID_EX_pipe['control']['Branch'] == 1:
-            print('會去溜')
+            #print('會去溜')
             return
         
         #mem hazard    先MEM再EX這樣就算同時MEM和EX Hazard也會取到ex的
@@ -159,10 +159,10 @@ class EXStage(BaseStage):
             if MEM_WB_pipe['control']["RegWrite"] == 1 and MEM_WB_pipe["RegDstValue"]  != '$0':
                 #print('data-hazard!!!!!!!!!!!!!!!!!!!!!!!!')
                 if dict(ID_EX_pipe['instruction'])["rs"] == MEM_WB_pipe["RegDstValue"]:
-                    print('MEM_R-FORMAT DATA-HAZARD--RS')
+                    #print('MEM_R-FORMAT DATA-HAZARD--RS')
                     ForwardA='01'
                 if dict(ID_EX_pipe['instruction'])["rt"] == MEM_WB_pipe["RegDstValue"]:
-                    print('MEM_R-FORMAT DATA-HAZARD--RT')
+                    #print('MEM_R-FORMAT DATA-HAZARD--RT')
                     ForwardB='01'
                     
         if EX_MEM_pipe['nop'] != True:
@@ -171,10 +171,10 @@ class EXStage(BaseStage):
             
             if EX_MEM_pipe['control']["RegWrite"] == 1 and EX_MEM_pipe["RegDstValue"]  != '$0':
                 if dict(ID_EX_pipe['instruction'])["rs"] == EX_MEM_pipe["RegDstValue"]:
-                    print('EX_R-FORMAT DATA-HAZARD--RS')
+                    #print('EX_R-FORMAT DATA-HAZARD--RS')
                     ForwardA='10'
                 if dict(ID_EX_pipe['instruction'])["rt"] == EX_MEM_pipe["RegDstValue"]:
-                    print('EX_R-FORMAT DATA-HAZARD--RT')
+                    #print('EX_R-FORMAT DATA-HAZARD--RT')
                     ForwardB='10'
         else:
             pass

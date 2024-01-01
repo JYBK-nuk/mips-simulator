@@ -87,9 +87,9 @@ class ControlUnit:
             self.pipelineRegister["ID/EX"]['nop']=True
             self.PC_Write_Next_Cycle-=1
             self.IF_ID_Write-=1
-        print("現在的PC_Write:"+str(self.PC_Write))
-        print("現在的PC_Write_Next_Cycle:"+str(self.PC_Write_Next_Cycle))
-        print("現在的IF_ID_Write:"+str(self.IF_ID_Write))
+        #print("現在的PC_Write:"+str(self.PC_Write))
+        #print("現在的PC_Write_Next_Cycle:"+str(self.PC_Write_Next_Cycle))
+        #print("現在的IF_ID_Write:"+str(self.IF_ID_Write))
             
         # Stages
         #以下是WB
@@ -177,15 +177,14 @@ class ControlUnit:
         ##############################以下是IF
         
         #因為stall要防止更新pc 所以要暫存
-        print('sdsadsadsadasd\n')
-        print(self.stages[0].pc)
+        #print(self.stages[0].pc)
         IFOut = self.SaveAndGetpipelineRegister(
             "IF/ID", self.stages[0].RunWithNop(self.stages[0].nop)
         )
         
         if self.PC_Write_Next_Cycle:
             self.stages[0].pc=IFOut['PC']
-            print('STALL 中第IF不更新')
+            #print('STALL 中第IF不更新')
             
         self.pipelineRegister_temp['IF']=self.pipelineRegister['IF/ID']
         # Stages END
