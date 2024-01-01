@@ -23,8 +23,8 @@ python main.py
 
 - IFStage.py、IDStage.py、EXStage.py、MEMStage.py、WBStage.py：這些模塊分別定義了指令執行的不同階段
 ## Output格式
-{
-   'PC': 5,
-   'instruction': add:{'rd': '$4', 'rs': '$1', 'rt': '$4'},
-   'nop': False
-}
+{.
+   'PC': 5,.
+   'instruction': add:{'rd': '$4', 'rs': '$1', 'rt': '$4'},.
+   'nop': False.
+}.
