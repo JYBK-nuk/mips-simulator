@@ -24,8 +24,30 @@ python main.py
 - IFStage.py、IDStage.py、EXStage.py、MEMStage.py、WBStage.py：這些模塊分別定義了指令執行的不同階段
 ## Output格式
 都是此STAGE執行完之後所產出的相關資訊
+例子
+IF
 {  
    'PC': 5,  
    'instruction': add:{'rd': '$4', 'rs': '$1', 'rt': '$4'},  
    'nop': False  
 }  
+ID(因為Control在電路圖是ID STAGE就產生)  **-1就是DON'T CARE!!**
+{
+│   'PC': 4,
+│   'instruction': beq:{'rs': '$4', 'rt': '$1', 'immediate': '-2'},
+│   'nop': False,
+│   'ReadData1': 1,
+│   'ReadData2': 2,
+│   'immediate': '-2',
+│   'control': {
+│   │   'RegDst': -1,
+│   │   'ALUSrc': 0,
+│   │   'MemToReg': -1,
+│   │   'RegWrite': 0,
+│   │   'MemRead': 0,
+│   │   'MemWrite': 0,
+│   │   'Branch': 1,
+│   │   'ALUOp': 'sub'
+│   },
+│   'Compare_ID': 0
+}
