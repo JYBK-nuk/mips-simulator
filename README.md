@@ -10,7 +10,9 @@ rich==13.7.0
 
 ## Run
 - Input : `memory.txt`
+- 程式會讀取memory.txt
 ```sh
+cd至mips-simulator
 python main.py > result.txt
 ```
 
