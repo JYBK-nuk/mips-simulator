@@ -11,7 +11,7 @@ rich==13.7.0
 ## Run
 - Input : `memory.txt`
 ```sh
-python main.py
+python main.py > output.txt
 ```
 
 ## 檔案結構
