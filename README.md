@@ -33,8 +33,8 @@ IF
 }  
 ID(因為Control在電路圖是ID STAGE就產生)    **-1就是DON'T CARE!!**  
 {  
-   >'PC': 4,  
-   >'instruction': beq:{'rs': '$4', 'rt': '$1', 'immediate': '-2'},  
+   'PC': 4,  
+   'instruction': beq:{'rs': '$4', 'rt': '$1', 'immediate': '-2'},  
    >'nop': False,  
    >'ReadData1': 1,  
    >'ReadData2': 2,  
