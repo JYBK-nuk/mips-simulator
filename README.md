@@ -33,21 +33,21 @@ IF
 }  
 ID(因為Control在電路圖是ID STAGE就產生)    **-1就是DON'T CARE!!**  
 {  
-│   'PC': 4,  
-│   'instruction': beq:{'rs': '$4', 'rt': '$1', 'immediate': '-2'},  
-│   'nop': False,  
-│   'ReadData1': 1,  
-│   'ReadData2': 2,  
-│   'immediate': '-2',  
-│   'control': {  
-│   │   'RegDst': -1,  
-│   │   'ALUSrc': 0,  
-│   │   'MemToReg': -1,  
-│   │   'RegWrite': 0,  
-│   │   'MemRead': 0,  
-│   │   'MemWrite': 0,  
-│   │   'Branch': 1,  
-│   │   'ALUOp': 'sub'  
-│   },  
-│   'Compare_ID': 0  
+   'PC': 4,  
+   'instruction': beq:{'rs': '$4', 'rt': '$1', 'immediate': '-2'},  
+   'nop': False,  
+   'ReadData1': 1,  
+   'ReadData2': 2,  
+   'immediate': '-2',  
+   'control': {  
+      'RegDst': -1,  
+      'ALUSrc': 0,  
+      'MemToReg': -1,  
+      'RegWrite': 0,  
+      'MemRead': 0,  
+      'MemWrite': 0,  
+      'Branch': 1,  
+      'ALUOp': 'sub'  
+   },  
+   'Compare_ID': 0  
 }  
