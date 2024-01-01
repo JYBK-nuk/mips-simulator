@@ -46,8 +46,8 @@ ID(因為Control在電路圖是ID STAGE就產生)    **-1就是DON'T CARE!!**
       >>'RegWrite': 0,  
       >>'MemRead': 0,  
       >>'MemWrite': 0,  
-      >>'Branch': 1,  
-      >>'ALUOp': 'sub'  
+      >>'Branch': 1,
+>      >      'ALUOp': 'sub'  
    >},  
    >'Compare_ID': 0  
 }  
