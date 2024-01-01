@@ -23,9 +23,9 @@ python main.py
 
 - IFStage.py、IDStage.py、EXStage.py、MEMStage.py、WBStage.py：這些模塊分別定義了指令執行的不同階段
 ## Output格式
-都是此STAGE執行完之後所產出的相關資訊
-例子
-IF
+都是此STAGE執行完之後所產出的相關資訊 像是ID就是ID執行完後的資訊 而不是ID執行前  
+例子  
+IF  
 {  
    'PC': 5,  
    'instruction': add:{'rd': '$4', 'rs': '$1', 'rt': '$4'},  
@@ -51,3 +51,4 @@ ID(因為Control在電路圖是ID STAGE就產生)    **-1就是DON'T CARE!!**
 │   },  
 │   'Compare_ID': 0  
 }  
+EX MEM WB一樣  
