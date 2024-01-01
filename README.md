@@ -40,7 +40,7 @@ ID(因為Control在電路圖是ID STAGE就產生)    **-1就是DON'T CARE!!**
    >'ReadData2': 2,  
    >'immediate': '-2',  
    >'control': {  
-      >'RegDst': -1,  
+      >>'RegDst': -1,  
       >'ALUSrc': 0,  
       >'MemToReg': -1,  
       >'RegWrite': 0,  
