@@ -22,3 +22,9 @@ python main.py
 - ControlUnit.py：控制程式的執行流程。它包含了pipeline的相關邏輯，以及各個階段的初始化、執行和控制
 
 - IFStage.py、IDStage.py、EXStage.py、MEMStage.py、WBStage.py：這些模塊分別定義了指令執行的不同階段
+## Output格式
+{
+│   'PC': 5,
+│   'instruction': add:{'rd': '$4', 'rs': '$1', 'rt': '$4'},
+│   'nop': False
+}
